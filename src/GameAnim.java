@@ -16,27 +16,30 @@ public class GameAnim {
         Color top = GameUI.getSwingColor(card.getColor());
         Color bot = darken(top);
 
-        // Fill
         GradientPaint gp = new GradientPaint(0, 0, top, w, h, bot);
         g2.setPaint(gp);
         g2.fillRoundRect(2, 2, w - 5, h - 5, 16, 16);
 
-        // Border
-        g2.setColor(new Color(255, 255, 255, 150));
-        g2.setStroke(new BasicStroke(2f));
-        g2.drawRoundRect(2, 2, w - 5, h - 5, 16, 16);
+        if (card.getChosenColor() != null) {
+            Color borderC = GameUI.getSwingColor(card.getChosenColor());
+            g2.setColor(borderC);
+            g2.setStroke(new BasicStroke(3f));
+            g2.drawRoundRect(2, 2, w - 5, h - 5, 16, 16);
+        } else {
+            g2.setColor(new Color(255, 255, 255, 150));
+            g2.setStroke(new BasicStroke(2f));
+            g2.drawRoundRect(2, 2, w - 5, h - 5, 16, 16);
+        }
 
-        // Shine
         GradientPaint shine = new GradientPaint(0, 0, new Color(255, 255, 255, 120), 0, h / 2, new Color(255, 255, 255, 0));
         g2.setPaint(shine);
         g2.fillRoundRect(4, 4, w - 10, h / 2, 14, 14);
 
-        // Text
         g2.setFont(new Font("Arial", Font.BOLD, w > 90 ? 56 : 40));
         g2.setColor(Color.WHITE);
         String text;
         if (card.isBlack()) {
-            text = card.getChosenColor() != null ? "✦" + GameUI.colorSymbol(card.getChosenColor()) : "✦";
+            text = "✦";
         } else {
             text = String.valueOf(card.getValue());
         }
@@ -55,12 +58,16 @@ public class GameAnim {
         JPanel p = new JPanel(null);
         p.setSize(w, h);
         p.setBackground(c);
-        p.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 120), 2));
+        if (card.getChosenColor() != null) {
+            p.setBorder(BorderFactory.createLineBorder(GameUI.getSwingColor(card.getChosenColor()), 3));
+        } else {
+            p.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 120), 2));
+        }
         p.setOpaque(true);
 
         JLabel lbl = new JLabel("", SwingConstants.CENTER);
         if (card.isBlack()) {
-            lbl.setText(card.getChosenColor() != null ? "✦" + GameUI.colorSymbol(card.getChosenColor()) : "✦");
+            lbl.setText("✦");
             lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
         } else if (card.isPotion()) {
             lbl.setText("🧪");

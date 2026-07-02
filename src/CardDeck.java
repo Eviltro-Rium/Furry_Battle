@@ -79,6 +79,10 @@ public class CardDeck {
         cards.addAll(newCards);
     }
 
+    public void putBack(Card card) {
+        cards.add(0, card);
+    }
+
     public void reset() {
         initDeck();
         shuffle();

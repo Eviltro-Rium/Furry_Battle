@@ -6,13 +6,18 @@ public class GameCharacter {
     protected int maxHp;
     protected int currentHp;
     protected int burnStacks;
+    protected boolean frozen;
 
     public enum FollowUp {
         FIVE_CHOICE,
 
         REVEAL_TOP_DECK,
         REVEAL_DRAW,
-        REVEAL_AND_JUDGE
+        REVEAL_AND_JUDGE,
+        CHAN_FOUR_SWAP,
+        CHAN_FIVE_REORDER,
+        CHAN_SEVEN_JUDGE,
+        CHAN_SIX_REVEAL
     }
 
     public GameCharacter(String name, int maxHp) {
@@ -20,6 +25,7 @@ public class GameCharacter {
         this.maxHp = maxHp;
         this.currentHp = maxHp;
         this.burnStacks = 0;
+        this.frozen = false;
     }
 
     public String getName() { return name; }
@@ -38,6 +44,17 @@ public class GameCharacter {
         burnStacks = Math.max(0, burnStacks - stacks);
     }
 
+    public boolean isFrozen() { return frozen; }
+
+    public void setFrozen(boolean frozen) { this.frozen = frozen; }
+
+    public boolean hasDebuff() { return burnStacks > 0 || frozen; }
+
+    public void clearAllDebuffs() {
+        burnStacks = 0;
+        frozen = false;
+    }
+
     public void takeDamage(int amount) {
         currentHp = Math.max(0, currentHp - amount);
     }
@@ -49,6 +66,7 @@ public class GameCharacter {
     public void reset() {
         currentHp = maxHp;
         burnStacks = 0;
+        frozen = false;
     }
 
     public void applyPassive() {
@@ -82,6 +100,8 @@ public class GameCharacter {
         public boolean forceOpponentDiscardOne = false;
         public boolean clearSelfBuffs = false;
         public boolean discardRevealed = false;
+        public boolean addFreeze = false;
+        public boolean blueUnblockable = false;
         public List<FollowUp> followUps = new ArrayList<>();
         public String desc = "";
 
@@ -103,10 +123,13 @@ public class GameCharacter {
         public boolean immuneAll = false;
         public boolean healFromDamage = false;
         public int addBurn = 0;
+        public boolean addFreeze = false;
         public boolean forceDiscardAll = false;
         public int counterFromDamage = 0;
         public int drawCount = 0;
         public boolean clearSelfBuffs = false;
+        public boolean endAttackerTurn = false;
+        public boolean revealTopDeck = false;
         public String desc = "";
     }
 

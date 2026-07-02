@@ -10,12 +10,9 @@ public class LeonHandler extends CharacterHandler {
 
     @Override
     void doSevenChoice(int aiCardIndex) {
-        if (!game.pendingFiveChoice || game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
+        if (game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
         List<Card> oppHand = game.ai.getHand();
-        if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) {
-            game.showMessage("请点击选择AI的一张手牌！");
-            return;
-        }
+        if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card chosen = oppHand.remove(aiCardIndex);
         game.discardPile.addLast(chosen);
         game.pendingFiveChoice = false;
@@ -25,7 +22,7 @@ public class LeonHandler extends CharacterHandler {
             new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
         if (game.pendingAttack != null && game.pendingAttack.skipDefense) {
             game.showDefendDesc("跳过防御");
-            Timer skipTimer = new Timer(1500, e -> {
+            Timer skipTimer = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
                 game.resolvePostDefense(game.playerChar, game.aiChar);
                 game.clearAIZones();
@@ -36,7 +33,7 @@ public class LeonHandler extends CharacterHandler {
         } else if (game.pendingAttack != null) {
             game.currentPhase = Game.Phase.AI_DEFEND;
             game.updateDisplay();
-            game.aiTimer = new Timer(1000, e -> {
+            game.aiTimer = new Timer(Game.DELAY_PLAY, e -> {
                 game.aiTimer.stop();
                 game.doAIDefend();
             });
@@ -56,7 +53,7 @@ public class LeonHandler extends CharacterHandler {
             game.currentPhase = self == game.playerChar ? Game.Phase.PLAYER_PLAY : Game.Phase.AI_TURN;
             game.clearAIZones();
             game.updateDisplay();
-            if (self != game.playerChar) game.resumeAITurn();
+            if (self != game.playerChar) game.finishAITurn();
             return;
         }
         Card revealed = game.deck.draw();
@@ -67,7 +64,7 @@ public class LeonHandler extends CharacterHandler {
         GameAnim.playFlyAnimation(game, revealed, from, to, () -> {
             game.showAIRevealCard(revealed);
 
-            Timer revealTimer = new Timer(1500, e -> {
+            Timer revealTimer = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
 
                 self.heal(revealResult.selfHeal);
@@ -107,15 +104,13 @@ public class LeonHandler extends CharacterHandler {
                     if (self == game.playerChar) {
                         game.currentPhase = Game.Phase.AI_DEFEND;
                         game.updateDisplay();
-                        game.aiTimer = new Timer(800, e2 -> {
+                        game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                             game.aiTimer.stop();
                             game.doAIDefend();
                         });
                         game.aiTimer.start();
                     } else {
-                        game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                        game.selectedSingle = -1;
-                        game.updateDisplay();
+                        game.enterPlayerDefend();
                     }
                 } else if (revealResult.damage > 0 && revealResult.skipDefense) {
                     game.pendingAttack = revealResult;
@@ -123,7 +118,7 @@ public class LeonHandler extends CharacterHandler {
                         game.currentPhase = Game.Phase.AI_DEFEND;
                         game.updateDisplay();
                         game.showDefendDesc("跳过防御");
-                        Timer skipTimer = new Timer(1500, e2 -> {
+                        Timer skipTimer = new Timer(Game.DELAY_SKIP, e2 -> {
                             ((Timer)e2.getSource()).stop();
                             game.resolvePostDefense(game.playerChar, game.aiChar);
                             game.clearAIZones();
@@ -132,15 +127,13 @@ public class LeonHandler extends CharacterHandler {
                         });
                         skipTimer.start();
                     } else {
-                        game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                        game.updateDisplay();
                         game.showDefendDesc("跳过防御");
-                        Timer skipTimer = new Timer(1500, e2 -> {
+                        Timer skipTimer = new Timer(Game.DELAY_SKIP, e2 -> {
                             ((Timer)e2.getSource()).stop();
                             game.resolvePostDefense(game.aiChar, game.playerChar);
                             game.clearAIZones();
                             game.updateDisplay();
-                            game.resumeAITurn();
+                            game.finishAITurn();
                         });
                         skipTimer.start();
                     }
@@ -150,7 +143,7 @@ public class LeonHandler extends CharacterHandler {
                     game.clearAIZones();
                     game.updateDisplay();
                     if (self != game.playerChar) {
-                        Timer delay = new Timer(800, e2 -> {
+                        Timer delay = new Timer(Game.DELAY_STEP, e2 -> {
                             ((Timer)e2.getSource()).stop();
                             onDone.run();
                         });

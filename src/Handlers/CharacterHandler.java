@@ -23,4 +23,19 @@ public abstract class CharacterHandler {
     void doFiveChoiceDamage() {}
 
     void resolveAIFiveChoice(GameCharacter self, GameCharacter opponent, List<Card> selfHand, Runnable onDone) {}
+
+    void handleChanFourSwap(GameCharacter self, GameCharacter opponent,
+                             List<Card> selfHand, List<Card> oppHand, Runnable onDone) {}
+
+    void handleChanFiveReorder(GameCharacter self, GameCharacter opponent,
+                                List<Card> selfHand, Runnable onDone) {}
+
+    void handleChanSevenJudge(GameCharacter self, GameCharacter opponent,
+                               List<Card> oppHand, Runnable onDone) {}
+
+    void handleChanThreeDefendReveal(GameCharacter self, GameCharacter opponent,
+                                      List<Card> selfHand, Runnable onDone) {}
+
+    void handleChanSixReveal(GameCharacter self, GameCharacter opponent,
+                              List<Card> selfHand, Runnable onDone) {}
 }

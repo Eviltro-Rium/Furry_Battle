@@ -297,7 +297,12 @@ public class GameUI {
         skipDefendBtn.addActionListener(e -> game.doPlayerSkipDefend());
         fiveHealBtn.addActionListener(e -> game.doFiveChoiceHeal());
         fiveDamageBtn.addActionListener(e -> game.doFiveChoiceDamage());
-        sevenChoiceBtn.addActionListener(e -> {});
+        sevenChoiceBtn.addActionListener(e -> {
+            if (game.chanSevenKeepMode) game.doChanSevenKeep();
+            else if (game.chanFourSwapMode) game.doChanFourSwapConfirm();
+            else if (game.chanFourSelectOpponent) game.doChanFourOpponentConfirm();
+            else if (game.currentPhase == Game.Phase.PLAYER_SEVEN_CHOICE) game.doSevenChoiceConfirm();
+        });
 
         controlPanel.add(playBtn);
         controlPanel.add(enterDiscardBtn);
@@ -457,6 +462,14 @@ public class GameUI {
                     g2.setColor(new Color(255, 220, 60, 60));
                     g2.setStroke(new BasicStroke(8f));
                     g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
+                } else if (card.getChosenColor() != null) {
+                    Color borderC = getSwingColor(card.getChosenColor());
+                    g2.setColor(borderC);
+                    g2.setStroke(new BasicStroke(3f));
+                    g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
+                    g2.setColor(new Color(borderC.getRed(), borderC.getGreen(), borderC.getBlue(), 60));
+                    g2.setStroke(new BasicStroke(6f));
+                    g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
                 } else if (hover && clickable) {
                     g2.setColor(new Color(255, 255, 255, 100));
                     g2.setStroke(new BasicStroke(2f));
@@ -484,8 +497,7 @@ public class GameUI {
         JLabel numLabel;
         JLabel cornerLabel;
         if (card.isBlack()) {
-            String display = card.getChosenColor() != null ? "✦" + colorSymbol(card.getChosenColor()) : "✦";
-            numLabel = new JLabel(display, SwingConstants.CENTER);
+            numLabel = new JLabel("✦", SwingConstants.CENTER);
             numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
             numLabel.setForeground(new Color(230, 230, 240));
             String corner = card.isDrawTwo() ? "⚡+2" : "✦";
@@ -498,25 +510,22 @@ public class GameUI {
                 cornerLabel.setForeground(new Color(200, 200, 210));
             }
         } else if (card.isPotion()) {
-            String display = card.getChosenColor() != null ? "🧪" + colorSymbol(card.getChosenColor()) : "🧪";
-            numLabel = new JLabel(display, SwingConstants.CENTER);
+            numLabel = new JLabel("🧪", SwingConstants.CENTER);
             numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
             numLabel.setForeground(new Color(80, 70, 90));
             cornerLabel = new JLabel("🧪", SwingConstants.LEFT);
             cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
             cornerLabel.setForeground(new Color(100, 90, 110));
         } else if (card.isDrawThree()) {
-            String display = card.getChosenColor() != null ? "🃏" + colorSymbol(card.getChosenColor()) : "🃏";
-            numLabel = new JLabel(display, SwingConstants.CENTER);
+            numLabel = new JLabel("🃏", SwingConstants.CENTER);
             numLabel.setFont(new Font("微软雅黑", Font.PLAIN, 30));
             numLabel.setForeground(new Color(60, 60, 80));
             cornerLabel = new JLabel("+3🃏", SwingConstants.LEFT);
             cornerLabel.setFont(new Font("微软雅黑", Font.BOLD, 9));
             cornerLabel.setForeground(new Color(100, 90, 110));
         } else if (card.isWhite()) {
-            String display = card.getChosenColor() != null ? String.valueOf(card.getValue()) + colorSymbol(card.getChosenColor()) : String.valueOf(card.getValue());
-            numLabel = new JLabel(display, SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
+            numLabel = new JLabel(String.valueOf(card.getValue()), SwingConstants.CENTER);
+            numLabel.setFont(new Font("Arial", Font.BOLD, 30));
             numLabel.setForeground(new Color(80, 70, 90));
             cornerLabel = new OutlinedLabel(String.valueOf(card.getValue()), SwingConstants.LEFT, new Color(100, 90, 110), Color.WHITE, 1f);
             cornerLabel.setFont(new Font("Arial", Font.BOLD, 12));

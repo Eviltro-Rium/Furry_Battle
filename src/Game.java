@@ -8,6 +8,12 @@ import java.util.Map;
 
 
 public class Game extends JFrame {
+    static final int DELAY_STEP = 1500;
+    static final int DELAY_PLAY = 1800;
+    static final int DELAY_EFFECT = 2000;
+    static final int DELAY_SKIP = 2500;
+    static final int DELAY_REVEAL = 3000;
+
     enum Phase { PLAYER_PLAY, PLAYER_DISCARD, PLAYER_DEFEND, PLAYER_FIVE_CHOICE, PLAYER_SEVEN_CHOICE, AI_TURN, AI_DEFEND, GAME_OVER }
 
     protected Map<String, CharacterHandler> handlers = new HashMap<>();
@@ -38,12 +44,24 @@ public class Game extends JFrame {
     protected boolean aiHasPlayedBlackDefend;
     protected GameCharacter.AttackResult pendingAttack;
     protected Card pendingDefendCard;
+    protected GameCharacter.DefenseResult pendingDefendResult;
     protected boolean pendingFiveChoice;
     protected Card fiveChoiceCard;
     protected boolean forceOpponentDiscardOne;
     protected int turnCount;
     protected Timer aiTimer;
     protected Timer fadeTimer;
+
+    protected boolean chanFourSwapMode;
+    protected Card chanFourSwapDrawn;
+    protected Runnable chanFourSwapCallback;
+
+    protected boolean chanSevenMode;
+    protected Runnable chanSevenCallback;
+    protected Card chanSevenChosenCard;
+    protected boolean chanSevenKeepMode;
+    protected int selectedAICard;
+    protected boolean chanFourSelectOpponent;
 
     protected GameUI ui;
     protected EffectEngine effectEngine;
@@ -72,7 +90,7 @@ public class Game extends JFrame {
     }
 
     void onCharacterSelected(int playerChoice, int aiChoice) {
-        String[] charNames = {"Ryan", "Leon"};
+        String[] charNames = {"Ryan", "Leon", "Chan"};
         playerChar = createCharacter(charNames[playerChoice], false);
         aiChar = createCharacter(charNames[aiChoice], true);
         ai = createAI(charNames[aiChoice], aiChar);
@@ -80,6 +98,7 @@ public class Game extends JFrame {
 
         handlers.put("Ryan", new RyanHandler(this));
         handlers.put("Leon", new LeonHandler(this));
+        handlers.put("Chan", new ChanHandler(this));
 
         initUI();
         startGame();
@@ -88,6 +107,7 @@ public class Game extends JFrame {
     protected GameCharacter createCharacter(String name, boolean isAI) {
         switch (name) {
             case "Leon": return new LeonCharacter(isAI);
+            case "Chan": return new ChanCharacter(isAI);
             default: return new RyanCharacter(isAI);
         }
     }
@@ -95,6 +115,7 @@ public class Game extends JFrame {
     protected AIPlayer createAI(String name, GameCharacter character) {
         switch (name) {
             case "Leon": return new LeonAI(character);
+            case "Chan": return new ChanAI(character);
             default: return new RyanAI(character);
         }
     }
@@ -115,6 +136,16 @@ public class Game extends JFrame {
         pendingFiveChoice = false;
         fiveChoiceCard = null;
         forceOpponentDiscardOne = false;
+        chanFourSwapMode = false;
+        chanFourSwapDrawn = null;
+        chanFourSwapCallback = null;
+
+        chanSevenMode = false;
+        chanSevenCallback = null;
+        chanSevenChosenCard = null;
+        chanSevenKeepMode = false;
+        selectedAICard = -1;
+        chanFourSelectOpponent = false;
         pendingDefendCard = null;
         playerChar.reset();
         aiChar.reset();
@@ -129,11 +160,18 @@ public class Game extends JFrame {
         playerHand.addAll(deck.draw(5));
         ai.addCards(deck.draw(5));
 
+        if (playerChar instanceof ChanCharacter) {
+            List<Card> chanDraw = deck.draw(1);
+            playerHand.addAll(chanDraw);
+        }
+
         currentPhase = Phase.PLAYER_PLAY;
         updateDisplay();
     }
 
     List<Card> getPlayerHand() { return playerHand; }
+
+    List<Card> getAIHand() { return ai.getHand(); }
     AIPlayer getAI() { return ai; }
     GameUI getUI() { return ui; }
     Phase getCurrentPhase() { return currentPhase; }
@@ -221,6 +259,11 @@ public class Game extends JFrame {
 
     void onCardClicked(int handIndex, Phase phase) {
         if (busy) return;
+        if (chanFourSwapMode && phase == Phase.PLAYER_SEVEN_CHOICE) {
+            selectedSingle = (selectedSingle == handIndex) ? -1 : handIndex;
+            updateDisplay();
+            return;
+        }
         if (phase == Phase.PLAYER_PLAY || phase == Phase.PLAYER_DEFEND || phase == Phase.PLAYER_FIVE_CHOICE || phase == Phase.PLAYER_SEVEN_CHOICE) {
             selectedSingle = (selectedSingle == handIndex) ? -1 : handIndex;
         } else if (phase == Phase.PLAYER_DISCARD) {
@@ -249,6 +292,8 @@ public class Game extends JFrame {
         if (card.isBlack()) return true;
         if (card.isDrawThree()) return true;
         if (card.isPotion()) return true;
+        boolean isBlueAttack = top.getEffectiveColor() == Card.CardColor.BLUE;
+        if (isBlueAttack && pendingAttack != null && pendingAttack.blueUnblockable) return false;
         if (card.isWhite()) return card.getValue() <= 3 && canPlayOn(card, top);
         return card.getValue() <= 3 && canPlayOn(card, top);
     }
@@ -257,6 +302,9 @@ public class Game extends JFrame {
         if (discardPile.isEmpty()) return false;
         Card top = discardPile.getFirst();
         if (top.isBlack() && !hasPlayedBlackDefend) return false;
+        boolean isBlueAttack = top.getEffectiveColor() == Card.CardColor.BLUE;
+        if (playerChar.isFrozen() && isBlueAttack) return false;
+        if (pendingAttack != null && pendingAttack.blueUnblockable) return false;
         for (Card c : playerHand) {
             if (canDefend(c, top)) return true;
         }
@@ -373,7 +421,7 @@ public class Game extends JFrame {
                     } else if (pendingAttack != null && pendingAttack.skipDefense) {
                         forceOpponentDiscardOne = false;
                         showDefendDesc("跳过防御");
-                        Timer skipTimer = new Timer(1500, ev -> {
+                        Timer skipTimer = new Timer(DELAY_SKIP, ev -> {
                             ((Timer)ev.getSource()).stop();
                             resolvePostDefense(playerChar, aiChar);
                             clearAIZones();
@@ -385,7 +433,7 @@ public class Game extends JFrame {
                         forceOpponentDiscardOne = false;
                         currentPhase = Phase.AI_DEFEND;
                         updateDisplay();
-                        aiTimer = new Timer(1000, e -> {
+                        aiTimer = new Timer(DELAY_PLAY, e -> {
                             aiTimer.stop();
                             doAIDefend();
                         });
@@ -514,21 +562,21 @@ public class Game extends JFrame {
                                 GameAnim.playDrawAnimations(this, drawn.size(), false, () -> {
                                     ai.addCards(drawn);
                                     updateDisplay();
-                                    Timer bridgeTimer = new Timer(800, e2 -> {
+                                    Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                         ((Timer)e2.getSource()).stop();
                                         doAIDefend();
                                     });
                                     bridgeTimer.start();
                                 });
                             } else {
-                                Timer bridgeTimer = new Timer(800, e2 -> {
-                                    ((Timer)e2.getSource()).stop();
-                                    doAIDefend();
-                                });
-                                bridgeTimer.start();
+                                Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
+                                        ((Timer)e2.getSource()).stop();
+                                        doAIDefend();
+                                    });
+                                    bridgeTimer.start();
                             }
                         } else {
-                            Timer bridgeTimer = new Timer(800, e2 -> {
+                            Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                 ((Timer)e2.getSource()).stop();
                                 doAIDefend();
                             });
@@ -544,7 +592,7 @@ public class Game extends JFrame {
                     GameAnim.playFlyAnimation(this, defCard, from, to, () -> {
                         GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
                             new Point(getWidth() / 2, getHeight() / 3));
-                        Timer bridgeTimer = new Timer(800, e2 -> {
+                        Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                             ((Timer)e2.getSource()).stop();
                             doAIDefend();
                         });
@@ -561,14 +609,14 @@ public class Game extends JFrame {
                             GameAnim.playDrawAnimations(this, drawn.size(), false, () -> {
                                 ai.addCards(drawn);
                                 updateDisplay();
-                                Timer bridgeTimer = new Timer(800, e2 -> {
+                                Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                     ((Timer)e2.getSource()).stop();
                                     doAIDefend();
                                 });
                                 bridgeTimer.start();
                             });
                         } else {
-                            Timer bridgeTimer = new Timer(800, e2 -> {
+                            Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                 ((Timer)e2.getSource()).stop();
                                 doAIDefend();
                             });
@@ -594,6 +642,13 @@ public class Game extends JFrame {
         // === 第一步：正常防御 ===
         if (top.isBlack()) {
             showDefendDesc("跳过防御");
+            finishAIDefend();
+            return;
+        }
+
+        boolean isBlueAttack = top.getEffectiveColor() == Card.CardColor.BLUE;
+        if (aiChar.isFrozen() && isBlueAttack) {
+            showDefendDesc("❄️冷冻 → 无法防御蓝色攻击");
             finishAIDefend();
             return;
         }
@@ -628,7 +683,7 @@ public class Game extends JFrame {
                 GameAnim.playFlyAnimation(this, defCard, from, to, () -> {
                     GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
                         new Point(getWidth() / 2, getHeight() / 3));
-                    Timer bridgeTimer = new Timer(800, e2 -> {
+                    Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                         ((Timer)e2.getSource()).stop();
                         doAIDefend();
                     });
@@ -645,14 +700,14 @@ public class Game extends JFrame {
                         GameAnim.playDrawAnimations(this, drawn.size(), false, () -> {
                             ai.addCards(drawn);
                             updateDisplay();
-                            Timer bridgeTimer = new Timer(800, e2 -> {
+                            Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                 ((Timer)e2.getSource()).stop();
                                 doAIDefend();
                             });
                             bridgeTimer.start();
                         });
                     } else {
-                        Timer bridgeTimer = new Timer(800, e2 -> {
+                        Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                             ((Timer)e2.getSource()).stop();
                             doAIDefend();
                         });
@@ -672,7 +727,7 @@ public class Game extends JFrame {
                             GameAnim.playDrawAnimations(this, drawn.size(), false, () -> {
                                 ai.addCards(drawn);
                                 updateDisplay();
-                                Timer bridgeTimer = new Timer(800, e2 -> {
+                                Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                                     ((Timer)e2.getSource()).stop();
                                     doAIDefend();
                                 });
@@ -682,7 +737,7 @@ public class Game extends JFrame {
                         }
                     }
                     updateDisplay();
-                    Timer bridgeTimer = new Timer(800, e2 -> {
+                    Timer bridgeTimer = new Timer(DELAY_STEP, e2 -> {
                         ((Timer)e2.getSource()).stop();
                         doAIDefend();
                     });
@@ -698,7 +753,7 @@ public class Game extends JFrame {
         } else {
             pendingDefendCard = null;
             showDefendDesc("跳过防御");
-            Timer delay = new Timer(800, e2 -> {
+            Timer delay = new Timer(DELAY_STEP, e2 -> {
                 ((Timer)e2.getSource()).stop();
                 finishAIDefend();
             });
@@ -949,21 +1004,57 @@ public class Game extends JFrame {
     void doPlayerSkipDefend() {
         if (busy) return;
         busy = true;
-        if (hasPlayedBlackDefend) {
-            if (playerCanDefend()) {
-                busy = false;
-                showMessage("已打出黑牌，请再选一张牌来完成防御！");
-                return;
-            }
-            hasPlayedBlackDefend = false;
+        if (chanSevenKeepMode) {
+            CharacterHandler h = getHandler(playerChar);
+            if (h instanceof ChanHandler) ((ChanHandler) h).doChanSevenDiscard();
+            return;
         }
+        if (chanFourSwapMode) {
+            CharacterHandler h = getHandler(playerChar);
+            if (h instanceof ChanHandler) ((ChanHandler) h).doChanFourDiscard();
+            return;
+        }
+        hasPlayedBlackDefend = false;
         selectedSingle = -1;
         pendingDefendCard = null;
         showDefendDesc("跳过防御");
         finishPlayerDefend();
     }
 
+    void doChanSevenKeep() {
+        CharacterHandler h = getHandler(playerChar);
+        if (h instanceof ChanHandler) ((ChanHandler) h).doChanSevenKeep();
+    }
+
+    void doChanFourSwapConfirm() {
+        if (selectedSingle < 0 || selectedSingle >= playerHand.size()) return;
+        CharacterHandler h = getHandler(playerChar);
+        if (h instanceof ChanHandler) ((ChanHandler) h).doChanFourSwapChoice(selectedSingle);
+    }
+
+    void doChanFourOpponentConfirm() {
+        if (selectedAICard < 0 || selectedAICard >= ai.handSize()) return;
+        CharacterHandler h = getHandler(playerChar);
+        if (h instanceof ChanHandler) ((ChanHandler) h).doChanFourOpponentSelected(selectedAICard);
+    }
+
+    void doSevenChoiceConfirm() {
+        if (selectedAICard < 0 || selectedAICard >= ai.handSize()) return;
+        doSevenChoice(selectedAICard);
+    }
+
     void doSevenChoice(int aiCardIndex) {
+        if (chanSevenMode && !chanSevenKeepMode) {
+            CharacterHandler h = getHandler(playerChar);
+            if (h instanceof ChanHandler) ((ChanHandler) h).doChanSevenChoice(aiCardIndex);
+            return;
+        }
+        if (chanFourSwapMode) {
+            CharacterHandler h = getHandler(playerChar);
+            if (h instanceof ChanHandler) ((ChanHandler) h).doChanFourSwapChoice(aiCardIndex);
+            return;
+        }
+
         CharacterHandler h = getHandler(playerChar);
         if (h != null) h.doSevenChoice(aiCardIndex);
     }
@@ -978,17 +1069,33 @@ public class Game extends JFrame {
         if (h != null) h.doFiveChoiceDamage();
     }
 
+    protected void enterPlayerDefend() {
+        boolean isBlueAtk = !discardPile.isEmpty() && discardPile.getFirst().getEffectiveColor() == Card.CardColor.BLUE;
+        if (playerChar.isFrozen() && isBlueAtk) {
+            showDefendDesc("❄️冷冻 → 无法防御蓝色攻击");
+            Timer frozenTimer = new Timer(DELAY_EFFECT, e -> {
+                ((Timer)e.getSource()).stop();
+                finishPlayerDefend();
+            });
+            frozenTimer.start();
+        } else {
+            currentPhase = Phase.PLAYER_DEFEND;
+            selectedSingle = -1;
+            updateDisplay();
+        }
+    }
+
     protected void startAITurn() {
         currentPhase = Phase.AI_TURN;
         aiHasPlayed = false;
         updateDisplay();
-        aiTimer = new Timer(800, e -> executeAIStep());
+        aiTimer = new Timer(DELAY_STEP, e -> executeAIStep());
         aiTimer.start();
     }
 
     protected void resumeAITurn() {
         if (!playerChar.isAlive() || !aiChar.isAlive()) return;
-        aiTimer = new Timer(800, e -> executeAIStep());
+        aiTimer = new Timer(DELAY_STEP, e -> executeAIStep());
         aiTimer.start();
     }
 
@@ -1081,22 +1188,20 @@ public class Game extends JFrame {
                         applyAttackEffect(toPlay, aiChar, playerChar, ai.getHand(), () -> {
                             if (pendingAttack != null && pendingAttack.skipDefense) {
                                 showDefendDesc("跳过防御");
-                                Timer skipTimer = new Timer(1500, ev -> {
+                                Timer skipTimer = new Timer(DELAY_SKIP, ev -> {
                                     ((Timer)ev.getSource()).stop();
                                     resolvePostDefense(aiChar, playerChar);
                                     clearAIZones();
                                     checkHandLimit(ai.getHand(), false);
                                     updateDisplay();
-                                    resumeAITurn();
+                                    finishAITurn();
                                 });
                                 skipTimer.start();
                             } else if (pendingAttack != null) {
-                                currentPhase = Phase.PLAYER_DEFEND;
-                                selectedSingle = -1;
-                                updateDisplay();
+                                enterPlayerDefend();
                             } else {
                                 checkHandLimit(ai.getHand(), false);
-                                resumeAITurn();
+                                finishAITurn();
                             }
                         });
                     });
@@ -1213,6 +1318,12 @@ public class Game extends JFrame {
         hasPlayedThisTurn = false;
         currentPhase = Phase.PLAYER_PLAY;
         playerChar.applyPassive();
+        if (playerChar instanceof ChanCharacter) {
+            List<Card> chanDraw = drawFromDeck(1);
+            if (!chanDraw.isEmpty()) {
+                playerHand.addAll(chanDraw);
+            }
+        }
         applyBurnDamage(aiChar);
         selectedSingle = -1;
         selectedMulti.clear();
@@ -1320,9 +1431,39 @@ public class Game extends JFrame {
     }
 
     void resolveAIFiveChoice(GameCharacter self, GameCharacter opponent,
-                                      List<Card> selfHand, Runnable onDone) {
+                                       List<Card> selfHand, Runnable onDone) {
         CharacterHandler h = getHandler(self);
         if (h != null) h.resolveAIFiveChoice(self, opponent, selfHand, onDone);
+    }
+
+    void handleChanFourSwap(GameCharacter self, GameCharacter opponent,
+                             List<Card> selfHand, List<Card> oppHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h != null) h.handleChanFourSwap(self, opponent, selfHand, oppHand, onDone);
+    }
+
+    void handleChanFiveReorder(GameCharacter self, GameCharacter opponent,
+                                List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h != null) h.handleChanFiveReorder(self, opponent, selfHand, onDone);
+    }
+
+    void handleChanSevenJudge(GameCharacter self, GameCharacter opponent,
+                               List<Card> oppHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h != null) h.handleChanSevenJudge(self, opponent, oppHand, onDone);
+    }
+
+    void handleChanThreeDefendReveal(GameCharacter self, GameCharacter opponent,
+                                      List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h != null) h.handleChanThreeDefendReveal(self, opponent, selfHand, onDone);
+    }
+
+    void handleChanSixReveal(GameCharacter self, GameCharacter opponent,
+                              List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h != null) h.handleChanSixReveal(self, opponent, selfHand, onDone);
     }
 
     /** Apply pending attack damage after defense */
@@ -1337,6 +1478,7 @@ public class Game extends JFrame {
 
         if (dmg > 0 && pendingDefendCard != null) {
             GameCharacter.DefenseResult def = defender.resolveDefense(pendingDefendCard, dmg, isRed);
+            pendingDefendResult = def;
 
             if (def.immuneAll) {
                 dmg = 0;
@@ -1384,6 +1526,14 @@ public class Game extends JFrame {
                         : new Point(getWidth() / 2, getHeight() / 3 - 60));
             }
 
+            if (def.addFreeze) {
+                attacker.setFrozen(true);
+                GameAnim.playFloatingText(this, "❄️冷冻", new Color(100, 180, 255),
+                    attacker == playerChar
+                        ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
+                        : new Point(getWidth() / 2, getHeight() / 3 - 60));
+            }
+
             if (def.forceDiscardAll) {
                 List<Card> oppHand = attacker == playerChar ? playerHand : ai.getHand();
                 for (Card c : new ArrayList<>(oppHand)) {
@@ -1393,7 +1543,7 @@ public class Game extends JFrame {
             }
 
             if (def.clearSelfBuffs) {
-                defender.removeBurn(defender.getBurnStacks());
+                defender.clearAllDebuffs();
             }
 
             if (def.drawCount > 0) {
@@ -1458,7 +1608,25 @@ public class Game extends JFrame {
     protected void finishAIDefend() {
         resolvePostDefense(playerChar, aiChar);
         if (!playerChar.isAlive() || !aiChar.isAlive()) return;
-        Timer pause = new Timer(1200, ev -> {
+        if (pendingDefendResult != null && pendingDefendResult.endAttackerTurn) {
+            pendingDefendResult = null;
+            clearAIZones();
+            finishPlayerTurn();
+            return;
+        }
+        if (pendingDefendResult != null && pendingDefendResult.revealTopDeck) {
+            GameCharacter.DefenseResult def = pendingDefendResult;
+            pendingDefendResult = null;
+            List<Card> defHand = aiChar == playerChar ? playerHand : ai.getHand();
+            handleChanThreeDefendReveal(aiChar, playerChar, defHand, () -> {
+                currentPhase = Phase.PLAYER_PLAY;
+                clearAIZones();
+                updateDisplay();
+            });
+            return;
+        }
+        pendingDefendResult = null;
+        Timer pause = new Timer(DELAY_EFFECT, ev -> {
             ((Timer)ev.getSource()).stop();
             if (!playerChar.isAlive() || !aiChar.isAlive()) return;
             clearAIZones();
@@ -1472,9 +1640,28 @@ public class Game extends JFrame {
     protected void finishPlayerDefend() {
         resolvePostDefense(aiChar, playerChar);
         if (!playerChar.isAlive() || !aiChar.isAlive()) return;
+        if (pendingDefendResult != null && pendingDefendResult.endAttackerTurn) {
+            pendingDefendResult = null;
+            clearAIZones();
+            finishAITurn();
+            return;
+        }
+        if (pendingDefendResult != null && pendingDefendResult.revealTopDeck) {
+            GameCharacter.DefenseResult def = pendingDefendResult;
+            pendingDefendResult = null;
+            List<Card> defHand = playerChar == playerChar ? playerHand : ai.getHand();
+            handleChanThreeDefendReveal(playerChar, aiChar, defHand, () -> {
+                currentPhase = Phase.AI_TURN;
+                clearAIZones();
+                updateDisplay();
+                resumeAITurn();
+            });
+            return;
+        }
+        pendingDefendResult = null;
         currentPhase = Phase.AI_TURN;
         updateDisplay();
-        Timer pause = new Timer(1200, ev -> {
+        Timer pause = new Timer(DELAY_EFFECT, ev -> {
             ((Timer)ev.getSource()).stop();
             if (!playerChar.isAlive() || !aiChar.isAlive()) return;
             clearAIZones();
@@ -1611,12 +1798,17 @@ public class Game extends JFrame {
         } else if (currentPhase == Phase.PLAYER_SEVEN_CHOICE) {
             for (int i = 0; i < ai.handSize(); i++) {
                 int idx = i;
+                boolean aiSelected = (selectedAICard == i);
                 JPanel cardBack = GameUI.createCardBackView();
+                if (aiSelected) {
+                    cardBack.setBorder(BorderFactory.createLineBorder(new Color(255, 220, 60), 3));
+                }
                 cardBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 cardBack.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
                     public void mouseClicked(java.awt.event.MouseEvent e) {
-                        doSevenChoice(idx);
+                        selectedAICard = (selectedAICard == idx) ? -1 : idx;
+                        updateDisplay();
                     }
                 });
                 ui.aiHandPanel.add(cardBack);
@@ -1652,6 +1844,12 @@ public class Game extends JFrame {
             burnLbl.setForeground(new Color(255, 80, 0));
             ui.aiHandPanel.add(burnLbl);
         }
+        if (aiChar.isFrozen()) {
+            JLabel freezeLbl = new JLabel("❄️");
+            freezeLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+            freezeLbl.setForeground(new Color(100, 180, 255));
+            ui.aiHandPanel.add(freezeLbl);
+        }
         ui.aiHandPanel.revalidate();
         ui.aiHandPanel.repaint();
 
@@ -1684,6 +1882,12 @@ public class Game extends JFrame {
             burnLbl.setForeground(new Color(255, 80, 0));
             ui.playerHandPanel.add(burnLbl);
         }
+        if (playerChar.isFrozen()) {
+            JLabel freezeLbl = new JLabel("❄️");
+            freezeLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+            freezeLbl.setForeground(new Color(100, 180, 255));
+            ui.playerHandPanel.add(freezeLbl);
+        }
         ui.playerHandPanel.revalidate();
         ui.playerHandPanel.repaint();
 
@@ -1699,17 +1903,33 @@ public class Game extends JFrame {
         ui.cancelDiscardBtn.setVisible(isPlayerDiscard && !forcedDiscard);
         ui.endTurnBtn.setVisible(isPlayerPlay);
         ui.defendBtn.setVisible(isPlayerDefend);
-        ui.skipDefendBtn.setVisible(isPlayerDefend);
+        ui.skipDefendBtn.setVisible(isPlayerDefend || (chanFourSwapMode && !chanFourSelectOpponent) || chanSevenKeepMode);
+        if (chanFourSwapMode) {
+            ui.skipDefendBtn.setText("🗑 弃掉(2伤害)");
+        } else if (chanSevenKeepMode) {
+            ui.skipDefendBtn.setText("🗑 弃掉");
+        } else {
+            ui.skipDefendBtn.setText("⏩ 跳过");
+        }
         ui.fiveHealBtn.setVisible(isFiveChoice);
         ui.fiveDamageBtn.setVisible(isFiveChoice);
-        ui.sevenChoiceBtn.setVisible(false);
+        ui.sevenChoiceBtn.setVisible(chanSevenKeepMode || chanFourSwapMode || currentPhase == Phase.PLAYER_SEVEN_CHOICE);
+        if (chanSevenKeepMode) {
+            ui.sevenChoiceBtn.setText("📥 加入手牌");
+        } else if (chanFourSwapMode) {
+            ui.sevenChoiceBtn.setText("🔄 确认交换");
+        } else if (chanFourSelectOpponent) {
+            ui.sevenChoiceBtn.setText("✋ 确认选择");
+        } else if (currentPhase == Phase.PLAYER_SEVEN_CHOICE) {
+            ui.sevenChoiceBtn.setText("✔ 确认选择");
+        }
         ui.playBtn.setEnabled(isPlayerPlay && selectedSingle >= 0);
         ui.enterDiscardBtn.setEnabled(isPlayerPlay && !hasPlayedThisTurn);
         ui.confirmDiscardBtn.setEnabled(isPlayerDiscard && !selectedMulti.isEmpty());
         ui.defendBtn.setEnabled(isPlayerDefend && selectedSingle >= 0 && playerCanDefend());
         ui.fiveHealBtn.setEnabled(isFiveChoice && selectedSingle >= 0);
         ui.fiveDamageBtn.setEnabled(isFiveChoice && selectedSingle >= 0);
-        ui.sevenChoiceBtn.setEnabled(false);
+        ui.sevenChoiceBtn.setEnabled((chanSevenKeepMode) || (chanFourSwapMode && selectedSingle >= 0) || (chanFourSelectOpponent && selectedAICard >= 0) || (currentPhase == Phase.PLAYER_SEVEN_CHOICE && !chanFourSwapMode && !chanSevenKeepMode && !chanFourSelectOpponent && selectedAICard >= 0));
     }
 
     public static void main(String[] args) {

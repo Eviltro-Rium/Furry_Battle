@@ -98,7 +98,7 @@ public class LeonCharacter extends GameCharacter {
             r.skipDefense = true;
             r.drawCount = -1;
             r.revealExtraDraw = 1;
-            r.desc = "判定0/白/黑 → 加入手牌 + 抽1张 + 施加2层灼伤（跳过防御）";
+            r.desc = "判定0/道具牌 → 加入手牌 + 抽1张 + 施加2层灼伤（跳过防御）";
         }
         return r;
     }

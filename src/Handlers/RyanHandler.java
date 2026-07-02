@@ -26,7 +26,7 @@ public class RyanHandler extends CharacterHandler {
         GameAnim.playFlyAnimation(game, revealed, from, to, () -> {
             game.showAIRevealCard(revealed);
 
-            Timer revealTimer = new Timer(1500, e -> {
+            Timer revealTimer = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
 
                 self.heal(revealResult.selfHeal);
@@ -42,22 +42,19 @@ public class RyanHandler extends CharacterHandler {
                         if (self == game.playerChar) {
                             game.currentPhase = Game.Phase.AI_DEFEND;
                             game.updateDisplay();
-                            game.aiTimer = new Timer(800, e2 -> {
+                            game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                                 game.aiTimer.stop();
                                 game.doAIDefend();
                             });
                             game.aiTimer.start();
                         } else {
-                            game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                            game.selectedSingle = -1;
-                            game.updateDisplay();
+                            game.enterPlayerDefend();
                         }
                     } else {
                         game.pendingAttack = null;
-                        game.currentPhase = self == game.playerChar ? Game.Phase.PLAYER_PLAY : Game.Phase.AI_TURN;
+                        game.currentPhase = Game.Phase.PLAYER_PLAY;
                         game.clearAIZones();
                         game.updateDisplay();
-                        if (self != game.playerChar) game.resumeAITurn();
                     }
                 } else if (revealResult.discardRevealed) {
                     game.discardPile.addLast(revealed);
@@ -66,22 +63,19 @@ public class RyanHandler extends CharacterHandler {
                         if (self == game.playerChar) {
                             game.currentPhase = Game.Phase.AI_DEFEND;
                             game.updateDisplay();
-                            game.aiTimer = new Timer(800, e2 -> {
+                            game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                                 game.aiTimer.stop();
                                 game.doAIDefend();
                             });
                             game.aiTimer.start();
                         } else {
-                            game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                            game.selectedSingle = -1;
-                            game.updateDisplay();
+                            game.enterPlayerDefend();
                         }
                     } else {
                         game.pendingAttack = null;
-                        game.currentPhase = self == game.playerChar ? Game.Phase.PLAYER_PLAY : Game.Phase.AI_TURN;
+                        game.currentPhase = Game.Phase.PLAYER_PLAY;
                         game.clearAIZones();
                         game.updateDisplay();
-                        if (self != game.playerChar) game.resumeAITurn();
                     }
                 } else if (revealResult.drawCount > 0) {
                     game.discardPile.addLast(revealed);
@@ -106,7 +100,7 @@ public class RyanHandler extends CharacterHandler {
                         game.pendingAttack = revealResult;
                         game.currentPhase = Game.Phase.AI_DEFEND;
                         game.updateDisplay();
-                        game.aiTimer = new Timer(800, e2 -> {
+                        game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                             game.aiTimer.stop();
                             game.doAIDefend();
                         });
@@ -140,7 +134,7 @@ public class RyanHandler extends CharacterHandler {
         GameAnim.playFlyAnimation(game, revealed, from, to, () -> {
             game.showAIRevealCard(revealed);
 
-            Timer revealTimer = new Timer(1500, e -> {
+            Timer revealTimer = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
 
                 self.heal(revealResult.selfHeal);
@@ -156,15 +150,13 @@ public class RyanHandler extends CharacterHandler {
                         if (self == game.playerChar) {
                             game.currentPhase = Game.Phase.AI_DEFEND;
                             game.updateDisplay();
-                            game.aiTimer = new Timer(800, e2 -> {
+                            game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                                 game.aiTimer.stop();
                                 game.doAIDefend();
                             });
                             game.aiTimer.start();
                         } else {
-                            game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                            game.selectedSingle = -1;
-                            game.updateDisplay();
+                            game.enterPlayerDefend();
                         }
                     } else {
                         game.pendingAttack = null;
@@ -179,15 +171,13 @@ public class RyanHandler extends CharacterHandler {
                         if (self == game.playerChar) {
                             game.currentPhase = Game.Phase.AI_DEFEND;
                             game.updateDisplay();
-                            game.aiTimer = new Timer(800, e2 -> {
+                            game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                                 game.aiTimer.stop();
                                 game.doAIDefend();
                             });
                             game.aiTimer.start();
                         } else {
-                            game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                            game.selectedSingle = -1;
-                            game.updateDisplay();
+                            game.enterPlayerDefend();
                         }
                     } else {
                         game.pendingAttack = null;
@@ -216,9 +206,7 @@ public class RyanHandler extends CharacterHandler {
                     game.discardPile.addLast(revealed);
                     if (revealResult.damage > 0) {
                         game.pendingAttack = revealResult;
-                        game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                        game.selectedSingle = -1;
-                        game.updateDisplay();
+                        game.enterPlayerDefend();
                     } else {
                         game.pendingAttack = null;
                         game.clearAIZones();
@@ -250,7 +238,7 @@ public class RyanHandler extends CharacterHandler {
             Card firstDrawn = drawn.get(0);
             GameAnim.playFlyAnimation(game, firstDrawn, from, to, () -> {
                 game.showAIRevealCards(drawn);
-                Timer revealTimer = new Timer(2000, e -> {
+                Timer revealTimer = new Timer(Game.DELAY_REVEAL, e -> {
                     ((Timer)e.getSource()).stop();
                     selfHand.addAll(drawn);
                     int revealDmg = 0;
@@ -261,9 +249,7 @@ public class RyanHandler extends CharacterHandler {
                     if (revealDmg > 0) {
                         game.pendingAttack.damage = revealDmg;
                         game.showAttackDesc("公示牌合计" + revealDmg + "点伤害");
-                        game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                        game.selectedSingle = -1;
-                        game.updateDisplay();
+                        game.enterPlayerDefend();
                     } else {
                         game.pendingAttack = null;
                         game.currentPhase = Game.Phase.AI_TURN;
@@ -282,7 +268,7 @@ public class RyanHandler extends CharacterHandler {
         Card firstDrawn = drawn.get(0);
         GameAnim.playFlyAnimation(game, firstDrawn, from, to, () -> {
             game.showAIRevealCards(drawn);
-            Timer revealTimer = new Timer(2000, e -> {
+            Timer revealTimer = new Timer(Game.DELAY_REVEAL, e -> {
                 ((Timer)e.getSource()).stop();
                 selfHand.addAll(drawn);
                 int revealDmg = 0;
@@ -295,7 +281,7 @@ public class RyanHandler extends CharacterHandler {
                     game.showAttackDesc("公示牌合计" + revealDmg + "点伤害");
                     game.currentPhase = Game.Phase.AI_DEFEND;
                     game.updateDisplay();
-                    game.aiTimer = new Timer(800, e2 -> {
+                    game.aiTimer = new Timer(Game.DELAY_STEP, e2 -> {
                         game.aiTimer.stop();
                         game.doAIDefend();
                     });
@@ -313,12 +299,9 @@ public class RyanHandler extends CharacterHandler {
 
     @Override
     void doSevenChoice(int aiCardIndex) {
-        if (!game.pendingFiveChoice || game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
+        if (game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
         List<Card> oppHand = game.ai.getHand();
-        if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) {
-            game.showMessage("请点击选择AI的一张手牌！");
-            return;
-        }
+        if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card chosen = oppHand.remove(aiCardIndex);
         game.discardPile.addLast(chosen);
         game.pendingFiveChoice = false;
@@ -329,7 +312,7 @@ public class RyanHandler extends CharacterHandler {
         if (game.pendingAttack != null && game.pendingAttack.damage > 0) {
             game.currentPhase = Game.Phase.AI_DEFEND;
             game.updateDisplay();
-            game.aiTimer = new Timer(1000, e -> {
+            game.aiTimer = new Timer(Game.DELAY_PLAY, e -> {
                 game.aiTimer.stop();
                 game.doAIDefend();
             });
@@ -400,7 +383,7 @@ public class RyanHandler extends CharacterHandler {
             GameAnim.playFlyAnimation(game, second, from, to, () -> {
                 game.showAIRevealCard(second);
                 game.updateDisplay();
-                game.aiTimer = new Timer(1000, e -> {
+                game.aiTimer = new Timer(Game.DELAY_PLAY, e -> {
                     game.aiTimer.stop();
                     game.doAIDefend();
                 });
@@ -416,7 +399,7 @@ public class RyanHandler extends CharacterHandler {
             GameAnim.playFlyAnimation(game, second, from, to, () -> {
                 game.showAIRevealCard(second);
                 game.updateDisplay();
-                Timer clearDelay = new Timer(800, ev -> {
+                Timer clearDelay = new Timer(Game.DELAY_STEP, ev -> {
                     ((Timer)ev.getSource()).stop();
                     game.clearAIZones();
                     game.updateDisplay();
@@ -463,9 +446,7 @@ public class RyanHandler extends CharacterHandler {
                 game.pendingAttack = new GameCharacter.AttackResult();
                 game.pendingAttack.damage = fiveResult.damage;
                 game.pendingAttack.desc = fiveResult.desc;
-                game.currentPhase = Game.Phase.PLAYER_DEFEND;
-                game.selectedSingle = -1;
-                game.updateDisplay();
+                game.enterPlayerDefend();
             } else {
                 if (fiveResult.damage > 0) {
                     opponent.takeDamage(fiveResult.damage);
@@ -473,7 +454,7 @@ public class RyanHandler extends CharacterHandler {
                         new Point(game.getWidth() / 2, game.getHeight() * 3 / 4));
                 }
                 game.pendingAttack = null;
-                Timer clearDelay = new Timer(800, ev -> {
+                Timer clearDelay = new Timer(Game.DELAY_STEP, ev -> {
                     ((Timer)ev.getSource()).stop();
                     game.clearAIZones();
                     game.updateDisplay();
@@ -490,7 +471,7 @@ public class RyanHandler extends CharacterHandler {
                     deathDelay.start();
                     return;
                 }
-                Timer delay = new Timer(800, e -> {
+                Timer delay = new Timer(Game.DELAY_STEP, e -> {
                     ((Timer)e.getSource()).stop();
                     onDone.run();
                 });

@@ -25,6 +25,14 @@ public class EffectEngine {
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
         }
 
+        if (ar.addFreeze) {
+            opponent.setFrozen(true);
+            GameAnim.playFloatingText(game, "❄️冷冻", new Color(100, 180, 255),
+                opponent == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
+                    : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
+        }
+
         if (ar.skipDefenseIfBurn && opponent.getBurnStacks() > 0) {
             ar.skipDefense = true;
         }
@@ -89,7 +97,7 @@ public class EffectEngine {
     }
 
     void executeFollowUp(GameCharacter.FollowUp fu, Card card, GameCharacter self, GameCharacter opponent,
-                          List<Card> selfHand, Runnable onDone) {
+                           List<Card> selfHand, Runnable onDone) {
         switch (fu) {
             case FIVE_CHOICE:
                 executeFiveChoice(card, self, opponent, selfHand, onDone);
@@ -102,6 +110,18 @@ public class EffectEngine {
                 break;
             case REVEAL_AND_JUDGE:
                 executeRevealAndJudge(self, opponent, selfHand, onDone);
+                break;
+            case CHAN_FOUR_SWAP:
+                game.handleChanFourSwap(self, opponent, selfHand, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
+                break;
+            case CHAN_FIVE_REORDER:
+                game.handleChanFiveReorder(self, opponent, selfHand, onDone);
+                break;
+            case CHAN_SEVEN_JUDGE:
+                game.handleChanSevenJudge(self, opponent, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
+                break;
+            case CHAN_SIX_REVEAL:
+                game.handleChanSixReveal(self, opponent, selfHand, onDone);
                 break;
             default:
                 break;
