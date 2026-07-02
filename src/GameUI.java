@@ -272,10 +272,10 @@ public class GameUI {
         handArea.add(scrollPane, BorderLayout.CENTER);
 
         // Control buttons
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 6));
+        JPanel controlPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 10, 6));
         controlPanel.setOpaque(false);
         controlPanel.setPreferredSize(new Dimension(860, 46));
-        controlPanel.setMinimumSize(new Dimension(860, 46));
+        controlPanel.setMinimumSize(new Dimension(460, 46));
 
         playBtn         = makeBtn("⚔ 出牌",    new Color(240, 40, 50),  new Color(255, 80, 90));
         enterDiscardBtn = makeBtn("🗑 弃牌",    new Color(240, 140, 0),  new Color(255, 170, 30));
@@ -284,8 +284,8 @@ public class GameUI {
         endTurnBtn      = makeBtn("⏭ 结束回合",new Color(100, 60, 140), new Color(140, 90, 190));
         defendBtn       = makeBtn("🛡 防御",    new Color(0, 110, 230),  new Color(40, 150, 255));
         skipDefendBtn   = makeBtn("⏩ 跳过",  new Color(150, 140, 130),new Color(180, 170, 160));
-        fiveHealBtn     = makeBtn("❤️ 恢复数字点", new Color(0, 180, 80),   new Color(40, 210, 100));
-        fiveDamageBtn   = makeBtn("🗡️ 1½倍伤害",new Color(220, 40, 40), new Color(255, 70, 70));
+        fiveHealBtn     = makeBtn("❤ 恢复", new Color(0, 180, 80),   new Color(40, 210, 100));
+        fiveDamageBtn   = makeBtn("🗡 1.5倍",new Color(220, 40, 40), new Color(255, 70, 70));
         sevenChoiceBtn  = makeBtn("🎯 指定弃牌", new Color(255, 120, 0), new Color(255, 160, 40));
 
         playBtn.addActionListener(e -> game.doPlay());

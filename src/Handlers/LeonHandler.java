@@ -9,6 +9,45 @@ public class LeonHandler extends CharacterHandler {
     }
 
     @Override
+    void doSevenChoice(int aiCardIndex) {
+        if (!game.pendingFiveChoice || game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
+        List<Card> oppHand = game.ai.getHand();
+        if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) {
+            game.showMessage("请点击选择AI的一张手牌！");
+            return;
+        }
+        Card chosen = oppHand.remove(aiCardIndex);
+        game.discardPile.addLast(chosen);
+        game.pendingFiveChoice = false;
+        game.forceOpponentDiscardOne = false;
+        game.showAttackDesc("⚔7️⃣ 弃掉AI的" + chosen);
+        GameAnim.playFloatingText(game, "弃" + chosen, new Color(255, 60, 60),
+            new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
+        if (game.pendingAttack != null && game.pendingAttack.skipDefense) {
+            game.showDefendDesc("跳过防御");
+            Timer skipTimer = new Timer(1500, e -> {
+                ((Timer)e.getSource()).stop();
+                game.resolvePostDefense(game.playerChar, game.aiChar);
+                game.clearAIZones();
+                game.currentPhase = Game.Phase.PLAYER_PLAY;
+                game.updateDisplay();
+            });
+            skipTimer.start();
+        } else if (game.pendingAttack != null) {
+            game.currentPhase = Game.Phase.AI_DEFEND;
+            game.updateDisplay();
+            game.aiTimer = new Timer(1000, e -> {
+                game.aiTimer.stop();
+                game.doAIDefend();
+            });
+            game.aiTimer.start();
+        } else {
+            game.currentPhase = Game.Phase.PLAYER_PLAY;
+            game.updateDisplay();
+        }
+    }
+
+    @Override
     void handleRevealAndJudge(GameCharacter self, GameCharacter opponent,
                                        List<Card> selfHand, Runnable onDone) {
         game.refillDeckIfNeeded();

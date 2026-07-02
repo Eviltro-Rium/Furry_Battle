@@ -312,8 +312,8 @@ public class Game extends JFrame {
              GameAnim.playFlyAnimation(this, card, from, to, () -> {
                  showAIAttackCard(card);
                  showAttackDesc("🧪 恢复5点生命，可继续出牌");
-                GameAnim.playFloatingText(this, "+3", new Color(60, 220, 60),
-                    new Point(getWidth() / 2, getHeight() * 3 / 4));
+                 GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
+                     new Point(getWidth() / 2, getHeight() * 3 / 4));
                 currentPhase = Phase.PLAYER_PLAY;
                 updateDisplay();
             });
@@ -1026,7 +1026,7 @@ public class Game extends JFrame {
                     GameAnim.playFlyAnimation(this, toPlay, from, to, () -> {
                         showAIAttackCard(toPlay);
                         showAttackDesc("🧪 AI恢复5点生命，继续出牌");
-                        GameAnim.playFloatingText(this, "+3", new Color(60, 220, 60),
+                        GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
                             new Point(getWidth() / 2, getHeight() / 3));
                         updateDisplay();
                         resumeAITurn();
