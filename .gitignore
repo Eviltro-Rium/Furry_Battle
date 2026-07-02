@@ -1,0 +1,19 @@
+# Compiled
+out/
+*.class
+
+# JAR
+*.jar
+
+# Build output
+dist/
+FurryBattle.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/
