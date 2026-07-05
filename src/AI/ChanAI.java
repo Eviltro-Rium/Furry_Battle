@@ -12,65 +12,41 @@ public class ChanAI extends AIPlayer {
 
     @Override
     protected boolean shouldSkipCard(Card card) {
-        if (card.isPotion()) return false;
-        if (card.isDrawThree()) return false;
-        if (card.isBlack()) return false;
+        if (card.isItemCard()) return false;
+        if (character == null) return false;
         int v = card.getValue();
-        if (v == 1 && character != null && character.getCurrentHp() > character.getMaxHp() / 2) return true;
+        if (v == 1 && character.getCurrentHp() > character.getMaxHp() / 2) return true;
         return false;
     }
 
     @Override
-    public Card chooseDefend(Card top, boolean excludePotion) {
-        Card zeroCard = null;
-        Card colorMatch = null;
-        Card numberMatch = null;
-        Card blackCard = null;
-        Card whiteCard = null;
+    protected int attackPriority(Card card, Card top) {
+        if (card.isItemCard()) return super.attackPriority(card, top);
+        int v = card.getValue();
+        if (v == 6 && opponentHasDebuff()) return 70;
+        if (v == 7 && hand != null && hand.size() >= 3) return 65;
+        if (v == 5 && character != null && character.getCurrentHp() > 5) return 60;
+        return super.attackPriority(card, top);
+    }
 
-        Card.CardColor effective = top.getEffectiveColor();
+    private boolean opponentHasDebuff() {
+        return aiHasDebuff;
+    }
 
-        for (Card c : hand) {
-            if (!isDefendCard(c, top)) continue;
-            if (c.isWhite() && c.getValue() == 0 && !c.isPotion() && !c.isDrawThree()) {
-                if (zeroCard == null) zeroCard = c;
-                continue;
-            }
-            if (c.isBlack()) {
-                if (blackCard == null) blackCard = c;
-                continue;
-            }
-            if (c.isWhite()) {
-                if (whiteCard == null) whiteCard = c;
-                continue;
-            }
-            if (c.getColor() == effective && colorMatch == null) {
-                colorMatch = c;
-            }
-            if (c.getValue() == top.getValue() && numberMatch == null) {
-                numberMatch = c;
-            }
-        }
-
-        if (zeroCard != null && character != null && character.getCurrentHp() <= character.getMaxHp() / 2) {
-            return zeroCard;
-        }
-        if (colorMatch != null) return colorMatch;
-        if (numberMatch != null) return numberMatch;
-        if (zeroCard != null) return zeroCard;
-        if (whiteCard != null) return whiteCard;
-        if (blackCard != null) {
-            Card.CardColor chosen = chooseBlackColorForDefend(top);
-            blackCard.setChosenColor(chosen);
-        }
-        return blackCard;
+    @Override
+    protected int defendPriority(Card card, Card top) {
+        if (card.isItemCard()) return super.defendPriority(card, top);
+        int v = card.getValue();
+        if (v == 0 && character != null && character.getCurrentHp() <= character.getMaxHp() / 3) return 80;
+        if (v == 2) return 55;
+        return super.defendPriority(card, top);
     }
 
     Card chooseFourSwap(Card drawn, List<Card> aiHand) {
-        if (drawn.isBlack() || drawn.isWhite() || drawn.getValue() == 0) {
+        if (drawn.isItemCard() || drawn.getValue() == 0) {
             Card smallest = null;
             for (Card c : aiHand) {
-                if (c.getValue() == 0 || c.isBlack() || c.isWhite()) continue;
+                if (c.isItemCard() || c.getValue() == 0) continue;
                 if (smallest == null || c.getValue() < smallest.getValue()) {
                     smallest = c;
                 }
@@ -79,7 +55,7 @@ public class ChanAI extends AIPlayer {
         }
         Card sameColorSmaller = null;
         for (Card c : aiHand) {
-            if (c.getValue() == 0 || c.isBlack() || c.isWhite()) continue;
+            if (c.isItemCard() || c.getValue() == 0) continue;
             if (c.getColor() == drawn.getColor() && c.getValue() < drawn.getValue()) {
                 if (sameColorSmaller == null || c.getValue() < sameColorSmaller.getValue()) {
                     sameColorSmaller = c;
@@ -91,14 +67,14 @@ public class ChanAI extends AIPlayer {
 
     List<Card> reorderFive(List<Card> topFive) {
         List<Card> blacks = new ArrayList<>();
-        List<Card> whites = new ArrayList<>();
+        List<Card> items = new ArrayList<>();
         List<Card> zeros = new ArrayList<>();
         List<Card> others = new ArrayList<>();
 
         for (Card c : topFive) {
             if (c.isBlack()) blacks.add(c);
-            else if (c.isWhite() && !c.isPotion() && !c.isDrawThree() && c.getValue() == 0) zeros.add(c);
-            else if (c.isWhite()) whites.add(c);
+            else if (c.isItemCard()) items.add(c);
+            else if (c.getValue() == 0) zeros.add(c);
             else others.add(c);
         }
 
@@ -106,14 +82,15 @@ public class ChanAI extends AIPlayer {
 
         List<Card> result = new ArrayList<>();
         result.addAll(blacks);
-        result.addAll(whites);
+        result.addAll(items);
         result.addAll(zeros);
         result.addAll(others);
         return result;
     }
 
     boolean chooseSevenKeep(Card card) {
-        if (card.isBlack() || card.isWhite() || card.getValue() == 0) return true;
+        if (card.isItemCard()) return true;
+        if (card.getValue() == 0) return true;
         return card.getValue() >= 4;
     }
 }

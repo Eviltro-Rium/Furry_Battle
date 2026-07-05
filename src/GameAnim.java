@@ -69,6 +69,12 @@ public class GameAnim {
         if (card.isBlack()) {
             lbl.setText("✦");
             lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
+        } else if (card.isSuperPurify()) {
+            lbl.setText("✨✨");
+            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 36 : 24));
+        } else if (card.isPurify()) {
+            lbl.setText("✨");
+            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
         } else if (card.isPotion()) {
             lbl.setText("🧪");
             lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));

@@ -6,6 +6,8 @@ import java.util.Map;
 
 public class AIPlayer {
     protected List<Card> hand;
+    protected boolean aiHasDebuff;
+    protected int aiDebuffCount;
 
     public AIPlayer() {
         hand = new ArrayList<>();
@@ -41,41 +43,51 @@ public class AIPlayer {
         return card.getColor() == effective || card.getValue() == top.getValue();
     }
 
-    public Card choosePlay(Card top) {
-        Card colorMatch = null;
-        Card numberMatch = null;
-        Card blackCard = null;
-        Card whiteCard = null;
-
+    protected int attackPriority(Card card, Card top) {
+        if (card.isBlack()) return 1;
+        if (card.isSuperPurify()) return aiHasDebuff ? (aiDebuffCount >= 3 ? 52 : 48) : 2;
+        if (card.isPurify()) return aiHasDebuff ? (aiDebuffCount <= 2 ? 51 : 49) : 2;
+        if (card.isPotion()) return 3;
+        if (card.isDrawThree()) return 4;
+        if (card.isWhite()) return 5;
+        if (shouldSkipCard(card)) return 0;
         Card.CardColor effective = top.getEffectiveColor();
+        boolean colorMatch = card.getColor() == effective;
+        boolean numberMatch = card.getValue() == top.getValue();
+        if (!colorMatch && !numberMatch) return 0;
+        int base = colorMatch ? 20 : 15;
+        base += cardAttackValue(card) * 2;
+        return base;
+    }
+
+    protected int cardAttackValue(Card card) {
+        if (card.isItemCard()) return 0;
+        return card.getValue();
+    }
+
+    public Card choosePlay(Card top, boolean aiHasDebuff) {
+        this.aiHasDebuff = aiHasDebuff;
+        Card best = null;
+        int bestPri = -1;
 
         for (Card c : hand) {
-            if (c.isBlack()) {
-                if (blackCard == null) blackCard = c;
-                continue;
-            }
-            if (c.isWhite()) {
-                if (whiteCard == null) whiteCard = c;
-                continue;
-            }
-            if (shouldSkipCard(c)) continue;
-            if (c.getColor() == effective && colorMatch == null) {
-                colorMatch = c;
-            }
-            if (c.getValue() == top.getValue() && numberMatch == null) {
-                numberMatch = c;
+            if (!canPlayOn(c, top)) continue;
+            int pri = attackPriority(c, top);
+            if (pri > bestPri) {
+                bestPri = pri;
+                best = c;
             }
         }
 
-        if (colorMatch != null) return colorMatch;
-        if (numberMatch != null) return numberMatch;
-        if (whiteCard != null) {
-            whiteCard.setChosenColor(effective);
-            return whiteCard;
+        if (best != null) {
+            if (best.isBlack()) best.setChosenColor(chooseBlackColor());
+            if (best.isWhite()) best.setChosenColor(top.getEffectiveColor());
         }
-        if (blackCard != null) return blackCard;
+        return best;
+    }
 
-        return null;
+    public Card choosePlay(Card top) {
+        return choosePlay(top, false);
     }
 
     protected boolean shouldSkipCard(Card card) {
@@ -88,7 +100,7 @@ public class AIPlayer {
             counts.put(c, 0);
         }
         for (Card card : hand) {
-            if (!card.isBlack() && counts.containsKey(card.getColor())) {
+            if (!card.isBlack() && !card.isWhite() && counts.containsKey(card.getColor())) {
                 counts.put(card.getColor(), counts.get(card.getColor()) + 1);
             }
         }
@@ -114,6 +126,7 @@ public class AIPlayer {
         if (card.isBlack()) return hasLowCard();
         if (card.isDrawThree()) return true;
         if (card.isPotion()) return true;
+        if (card.isPurify() || card.isSuperPurify()) return aiHasDebuff;
         if (card.isWhite()) return card.getValue() <= 3 && canPlayOn(card, top);
         return card.getValue() <= 3 && canPlayOn(card, top);
     }
@@ -125,45 +138,42 @@ public class AIPlayer {
         return false;
     }
 
+    protected int defendPriority(Card card, Card top) {
+        if (card.isPotion()) return 60;
+        if (card.isSuperPurify()) return aiHasDebuff ? (aiDebuffCount >= 3 ? 57 : 53) : 5;
+        if (card.isPurify()) return aiHasDebuff ? (aiDebuffCount <= 2 ? 56 : 54) : 5;
+        if (card.isDrawThree()) return 50;
+        if (card.isBlack()) return 10;
+        if (card.isWhite()) return 15;
+        if (!isDefendCard(card, top)) return 0;
+        int base = 20;
+        base += (4 - card.getValue()) * 5;
+        return base;
+    }
+
     public Card chooseDefend(Card top) {
         return chooseDefend(top, false);
     }
 
     public Card chooseDefend(Card top, boolean excludePotion) {
-        Card colorMatch = null;
-        Card numberMatch = null;
-        Card blackCard = null;
-        Card whiteCard = null;
-
-        Card.CardColor effective = top.getEffectiveColor();
+        Card best = null;
+        int bestPri = -1;
 
         for (Card c : hand) {
+            if (excludePotion && c.isPotion()) continue;
             if (!isDefendCard(c, top)) continue;
-
-            if (c.isBlack()) {
-                if (blackCard == null) blackCard = c;
-                continue;
-            }
-            if (c.isWhite()) {
-                if (whiteCard == null) whiteCard = c;
-                continue;
-            }
-            if (c.getColor() == effective && colorMatch == null) {
-                colorMatch = c;
-            }
-            if (c.getValue() == top.getValue() && numberMatch == null) {
-                numberMatch = c;
+            int pri = defendPriority(c, top);
+            if (pri > bestPri) {
+                bestPri = pri;
+                best = c;
             }
         }
 
-        if (colorMatch != null) return colorMatch;
-        if (numberMatch != null) return numberMatch;
-        if (whiteCard != null) return whiteCard;
-        if (blackCard != null) {
-            Card.CardColor chosen = chooseBlackColorForDefend(top);
-            blackCard.setChosenColor(chosen);
+        if (best != null) {
+            if (best.isBlack()) best.setChosenColor(chooseBlackColorForDefend(top));
+            if (best.isWhite()) best.setChosenColor(top.getEffectiveColor());
         }
-        return blackCard;
+        return best;
     }
 
     protected Card.CardColor chooseBlackColorForDefend(Card top) {

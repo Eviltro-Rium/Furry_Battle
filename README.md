@@ -1,29 +1,28 @@
-# Furry Battle v1.1
+# Furry Battle v1.2
 
 一款基于 Java Swing 的回合制卡牌对战游戏。选择你的角色，与 AI 展开策略博弈！
 
-## 截图
+## v1.2 更新内容
 
-> 选择角色后进入对战，出牌区左侧为进攻、右侧为防御，攻防一目了然。
-
-## v1.1 更新内容
-
-- **新角色 🔵 Chan**：冷冻型操控者，80血，被动回合开始抽1牌
-- **冷冻机制**：被冷冻时无法防御蓝色攻击，最多叠1层
-- **攻防分区 UI**：出牌区左攻右防，防御结束后统一清理
-- **自定义弹窗**：5️⃣排序使用拖拽式自定义弹窗
-- **高亮选择**：选牌时高亮确认，不再误操作
-- **卡牌边框指示**：白牌/黑牌指定颜色后边框变色，不再用emoji
-- **AI 修复**：修复 AI 无限出牌崩溃、搭桥跳过逻辑等
-- **Leon 0️⃣防御**：改为双方各受等量伤害
+- **新角色 � Saiki**：流血型猎手，80血，被动打出黄牌施加流血
+- **流血机制**：防御时每层流血造成1点独立伤害，最多3层，可净化
+- **净化牌**：✨净化1层debuff+搭桥（6张）、✨✨清除所有debuff+搭桥（2张）
+- **🧪药水牌**：4张，恢复5❤️+搭桥
+- **+3牌**：2张，抽3张+搭桥
+- **道具牌value=-1**：从根本上避免道具牌误触0️⃣技能，不再需要到处加isItemCard检查
+- **AI策略优化**：优先级系统替代简单匹配，角色专属策略（Ryan保血、Leon灼烧链、Chan控场、Saiki流血叠加）
+- **AI净化策略**：debuff少用✨、debuff多用✨✨，无debuff不出净化
+- **防御防连点**：修复搭桥动画期间可重复点击导致崩溃的bug
+- **按角色拆分Phase**：SAIKI_THREE_CHOICE/SAIKI_SIX_JUDGE独立阶段，不再复用Chan状态变量
+- **流血伤害区分显示**：每层流血独立显示🩸-1，被动流血单独显示🩸+1(🟡)
 
 ## 特色
 
-- **三角色系统**：Ryan（回复型）、Leon（灼烧型）、Chan（冷冻型），技能风格迥异
-- **搭桥机制**：黑牌 / 🧪 / +3 可连续搭桥，策略深度拉满
+- **四角色系统**：Ryan（回复型）、Leon（灼烧型）、Chan（冷冻型）、Saiki（流血型），技能风格迥异
+- **搭桥机制**：黑牌 / 🧪 / +3 / ✨ / ✨✨ 可连续搭桥，策略深度拉满
 - **攻防分区**：出牌区左攻右防，防御结束后统一清理
 - **AI 对手**：角色专属 AI 策略，会根据局势搭桥、跳防、优先出牌
-- **动画效果**：卡牌飞入、HP 平滑过渡、飘字伤害/恢复、灼烧/冷冻标记
+- **动画效果**：卡牌飞入、HP 平滑过渡、飘字伤害/恢复、灼烧/冷冻/流血标记
 
 ## 角色一览
 
@@ -55,7 +54,17 @@
 
 **进攻**：1️⃣1伤害+冷冻(跳防) · 2️⃣4伤害 · 3️⃣2伤害+抽1 · 4️⃣抽对手1牌交换或弃掉+2伤害(跳防) · 5️⃣消耗2❤️+排序牌库顶5张+抽2(跳防) · 6️⃣5伤害+判定(🔵/⚪/⚫跳防) · 7️⃣6伤害+选对手1牌判定 · 0️⃣7伤害+冷冻+抽1
 
-**防御**：1️⃣格挡½ · 2️⃣反击2+冷冻 · 3️⃣翻牌库顶恢复½点数(道具算0) · 0️⃣免疫+反击½+结束攻击方回合
+**防御**：1️⃣格挡½ · 2️⃣反击2+冷冻 · 3️⃣翻牌库顶恢复½点数+加入手牌 · 0️⃣免疫+反击½+结束攻击方回合
+
+### 🐺 Saiki — 流血型猎手
+
+| 血量 | 被动 |
+|---|---|
+| **80** | ⚔️阶段打出🟡牌（含指定为黄色的白牌/黑牌），对对手施加1层🩸 |
+
+**进攻**：1️⃣4伤害 · 2️⃣3伤害+恢复1 · 3️⃣2伤害+抽对手1牌(可弃掉) · 4️⃣5伤害(对手有流血不可防御) · 5️⃣HP分段(≤20恢复4/20<HP≤50 4伤害跳防/>50 4伤害+抽对手1牌) · 6️⃣判定数字牌×1.5伤害(黄牌+流血) · 7️⃣2×流血层数伤害+恢复等量 · 0️⃣1层流血+3×流血层数+1伤害+恢复双方流血之和
+
+**防御**：1️⃣防御至多4点 · 2️⃣反击3+1层流血 · 3️⃣翻牌判定(黄/黑/白→防御所有不免疫debuff/否则加入手牌) · 0️⃣防御所有+免疫debuff+双方均摊½伤害+debuff反弹
 
 ## 卡牌系统
 
@@ -69,16 +78,20 @@
 | ⚪ 白1~白7 | 各1张 | 匹配任意颜色 |
 | ⚪ 🧪 | 4张 | 恢复5❤️，搭桥 |
 | ⚪ +3🃏 | 2张 | 抽3张，搭桥 |
+| ⚪ ✨ | 6张 | 净化1层debuff，搭桥 |
+| ⚪ ✨✨ | 2张 | 清除所有debuff，搭桥 |
 
-**总计 83 张**
+**总计 89 张**
 
 ### 核心规则
 
 - **出牌**：匹配弃牌库顶的颜色或数字
-- **搭桥**：黑牌 / 🧪 / +3 打出后不结束回合，可连续搭桥
+- **搭桥**：黑牌 / 🧪 / +3 / ✨ / ✨✨ 打出后不结束回合，可连续搭桥
 - **防御**：出数字 ≤ 3 且颜色匹配的牌防御；也可用搭桥牌过渡
 - **灼烧**：回合结束按层数受伤并减1层（Leon 免疫伤害但正常挂标记）
 - **冷冻**：被冷冻时无法防御蓝色攻击（包括被指定为蓝色的白牌）
+- **流血**：防御时每层流血造成1点独立伤害（最多3层），可净化
+- **净化**：✨移除1层debuff（灼烧/冷冻/流血），✨✨移除所有debuff
 - **手牌上限**：回合结束时手牌超过上限需弃牌
 
 ## 运行方式
@@ -105,7 +118,7 @@ start.bat
 ### 手动编译运行
 
 ```bash
-javac -sourcepath src -d out src/Card.java src/CardDeck.java src/GameCharacter.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/GameUI.java src/GameAnim.java src/EffectEngine.java src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java
+javac -sourcepath src -d out src/Card.java src/CardDeck.java src/GameCharacter.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/GameUI.java src/GameAnim.java src/EffectEngine.java src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java
 java -cp out Game
 ```
 
@@ -131,24 +144,28 @@ chmod +x build.sh
 ```
 src/
 ├── Card.java                 # 卡牌类
-├── CardDeck.java             # 牌堆（83张）
+├── CardDeck.java             # 牌堆（89张）
 ├── GameCharacter.java        # 角色基类
 ├── Characters/
 │   ├── RyanCharacter.java    # Ryan 角色逻辑
 │   ├── LeonCharacter.java    # Leon 角色逻辑
-│   └── ChanCharacter.java    # Chan 角色逻辑
+│   ├── ChanCharacter.java    # Chan 角色逻辑
+│   └── SaikiCharacter.java   # Saiki 角色逻辑
 ├── AI/
-│   ├── AIPlayer.java         # AI 基类
+│   ├── AIPlayer.java         # AI 基类（优先级系统）
 │   ├── RyanAI.java           # Ryan AI
 │   ├── LeonAI.java           # Leon AI
-│   └── ChanAI.java           # Chan AI
+│   ├── ChanAI.java           # Chan AI
+│   └── SaikiAI.java          # Saiki AI
 ├── Handlers/
 │   ├── CharacterHandler.java # Handler 基类
 │   ├── RyanHandler.java      # Ryan 特殊交互
 │   ├── LeonHandler.java      # Leon 判定交互
-│   └── ChanHandler.java      # Chan 交互逻辑
+│   ├── ChanHandler.java      # Chan 交互逻辑
+│   └── SaikiHandler.java     # Saiki 交互逻辑
 ├── Dialogs/
-│   └── ChanFiveReorderDialog.java # 5️⃣排序弹窗
+│   ├── ChanFiveReorderDialog.java # 5️⃣排序弹窗
+│   └── PurifyDialog.java          # 净化选择弹窗
 ├── EffectEngine.java         # 效果引擎
 ├── GameUI.java               # Swing 界面
 ├── GameAnim.java             # 动画系统

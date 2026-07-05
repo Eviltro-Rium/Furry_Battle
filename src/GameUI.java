@@ -301,7 +301,9 @@ public class GameUI {
             if (game.chanSevenKeepMode) game.doChanSevenKeep();
             else if (game.chanFourSwapMode) game.doChanFourSwapConfirm();
             else if (game.chanFourSelectOpponent) game.doChanFourOpponentConfirm();
+            else if (game.currentPhase == Game.Phase.SAIKI_SIX_JUDGE) game.doSaikiSixConfirm();
             else if (game.currentPhase == Game.Phase.PLAYER_SEVEN_CHOICE) game.doSevenChoiceConfirm();
+            else if (game.currentPhase == Game.Phase.SAIKI_THREE_CHOICE) game.doChanFourOpponentConfirm();
         });
 
         controlPanel.add(playBtn);
@@ -509,6 +511,20 @@ public class GameUI {
                 cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
                 cornerLabel.setForeground(new Color(200, 200, 210));
             }
+        } else if (card.isSuperPurify()) {
+            numLabel = new JLabel("✨✨", SwingConstants.CENTER);
+            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+            numLabel.setForeground(new Color(80, 70, 90));
+            cornerLabel = new JLabel("✨✨", SwingConstants.LEFT);
+            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 9));
+            cornerLabel.setForeground(new Color(100, 90, 110));
+        } else if (card.isPurify()) {
+            numLabel = new JLabel("✨", SwingConstants.CENTER);
+            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
+            numLabel.setForeground(new Color(80, 70, 90));
+            cornerLabel = new JLabel("✨", SwingConstants.LEFT);
+            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
+            cornerLabel.setForeground(new Color(100, 90, 110));
         } else if (card.isPotion()) {
             numLabel = new JLabel("🧪", SwingConstants.CENTER);
             numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));

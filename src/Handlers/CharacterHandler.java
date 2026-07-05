@@ -38,4 +38,19 @@ public abstract class CharacterHandler {
 
     void handleChanSixReveal(GameCharacter self, GameCharacter opponent,
                               List<Card> selfHand, Runnable onDone) {}
+
+    void handleSaikiThreeDraw(GameCharacter self, GameCharacter opponent,
+                               List<Card> selfHand, List<Card> oppHand, Runnable onDone) {}
+
+    void handleSaikiSixJudge(GameCharacter self, GameCharacter opponent,
+                              List<Card> selfHand, Runnable onDone) {}
+
+    void handleSaikiSevenAttack(GameCharacter self, GameCharacter opponent,
+                                  List<Card> selfHand, Runnable onDone) {}
+
+    void handleSaikiZeroAttack(GameCharacter self, GameCharacter opponent,
+                                 List<Card> selfHand, Runnable onDone) {}
+
+    void handleSaikiThreeDefendReveal(GameCharacter self, GameCharacter opponent,
+                                        List<Card> selfHand, Runnable onDone) {}
 }

@@ -7,26 +7,38 @@ public class Card {
     private final boolean drawTwo;
     private final boolean drawThree;
     private final boolean potion;
+    private final boolean purify;
+    private final boolean superPurify;
 
     public Card(int value, CardColor color) {
-        this(value, color, false, false, false);
+        this(value, color, false, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo) {
-        this(value, color, drawTwo, false, false);
+        this(value, color, drawTwo, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean potion) {
-        this(value, color, drawTwo, false, potion);
+        this(value, color, drawTwo, false, potion, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion) {
+        this(value, color, drawTwo, drawThree, potion, false, false);
+    }
+
+    public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify) {
+        this(value, color, drawTwo, drawThree, potion, purify, false);
+    }
+
+    public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify) {
         this.value = value;
         this.color = color;
         this.chosenColor = null;
         this.drawTwo = drawTwo;
         this.drawThree = drawThree;
         this.potion = potion;
+        this.purify = purify;
+        this.superPurify = superPurify;
     }
 
     public int getValue() {
@@ -57,8 +69,16 @@ public class Card {
         return potion;
     }
 
+    public boolean isPurify() {
+        return purify;
+    }
+
+    public boolean isSuperPurify() {
+        return superPurify;
+    }
+
     public boolean isItemCard() {
-        return isPotion() || isBlack() || isDrawThree();
+        return isPotion() || isBlack() || isDrawThree() || isPurify() || isSuperPurify();
     }
 
     public boolean isNumberCard() {
@@ -88,7 +108,11 @@ public class Card {
         }
         if (isWhite()) {
             String chosen = chosenColor != null ? colorName(chosenColor) : "";
-            String suffix = drawThree ? "+3" : String.valueOf(value);
+            String suffix;
+            if (drawThree) suffix = "+3";
+            else if (superPurify) suffix = "✨✨";
+            else if (purify) suffix = "✨";
+            else suffix = String.valueOf(value);
             return "[白" + suffix + chosen + "]";
         }
         return "[" + colorName(color) + value + "]";

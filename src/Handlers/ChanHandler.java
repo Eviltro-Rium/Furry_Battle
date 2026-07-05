@@ -111,9 +111,30 @@ public class ChanHandler extends CharacterHandler {
     void handleChanFourSwap(GameCharacter self, GameCharacter opponent,
                              List<Card> selfHand, List<Card> oppHand, Runnable onDone) {
         if (oppHand.isEmpty()) {
-            game.showAttackDesc("4️⃣ 对手无手牌");
-            Timer t = new Timer(Game.DELAY_EFFECT, e -> { ((Timer)e.getSource()).stop(); onDone.run(); });
-            t.start();
+            game.pendingAttack = new GameCharacter.AttackResult();
+            game.pendingAttack.damage = 2;
+            game.pendingAttack.skipDefense = true;
+            game.showAttackDesc("4️⃣ 对手无手牌 → 2点伤害（跳过防御）");
+            game.showDefendDesc("跳过防御");
+            if (self == game.playerChar) {
+                Timer skipTimer = new Timer(Game.DELAY_SKIP, e -> {
+                    ((Timer)e.getSource()).stop();
+                    game.resolvePostDefense(game.playerChar, game.aiChar);
+                    game.clearAIZones();
+                    game.currentPhase = Game.Phase.PLAYER_PLAY;
+                    game.updateDisplay();
+                });
+                skipTimer.start();
+            } else {
+                Timer skipTimer = new Timer(Game.DELAY_SKIP, e -> {
+                    ((Timer)e.getSource()).stop();
+                    game.resolvePostDefense(game.aiChar, game.playerChar);
+                    game.clearAIZones();
+                    game.updateDisplay();
+                    game.finishAITurn();
+                });
+                skipTimer.start();
+            }
             return;
         }
 

@@ -14,15 +14,6 @@ public class RyanCharacter extends GameCharacter {
                                        int handValueSum, java.util.List<Card> opponentHand) {
         AttackResult r = new AttackResult();
 
-        if (card.isBlack()) {
-            if (card.isDrawTwo()) {
-
-                r.desc = "⚫+2 抽2张牌";
-            } else {
-                r.desc = "⚫ 改变颜色";
-            }
-            return r;
-        }
 
         int v = card.getValue();
 
@@ -115,6 +106,7 @@ public class RyanCharacter extends GameCharacter {
     @Override
     public DefenseResult resolveDefense(Card card, int incomingDamage, boolean isRed) {
         DefenseResult r = new DefenseResult();
+
         int v = card.getValue();
 
         switch (v) {

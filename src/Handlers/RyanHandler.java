@@ -394,6 +394,10 @@ public class RyanHandler extends CharacterHandler {
                 game.aiChar.takeDamage(fiveResult.damage);
                 GameAnim.playFloatingText(game, "-" + fiveResult.damage, new Color(255, 60, 60),
                     new Point(game.getWidth() / 2, game.getHeight() / 3));
+                if (!game.aiChar.isAlive()) {
+                    GameAnim.playFlyAnimation(game, second, from, to, () -> game.endGame("你"));
+                    return;
+                }
             }
             game.currentPhase = Game.Phase.PLAYER_PLAY;
             GameAnim.playFlyAnimation(game, second, from, to, () -> {

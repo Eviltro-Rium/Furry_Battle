@@ -15,6 +15,7 @@ public class EffectEngine {
         self.heal(ar.selfHeal);
         if (ar.selfDamage > 0 && !self.isImmuneToBurn()) {
             self.takeDamage(ar.selfDamage);
+            if (!self.isAlive()) return;
         }
 
         if (ar.addBurn > 0) {
@@ -33,7 +34,35 @@ public class EffectEngine {
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
         }
 
+        if (ar.addBleed > 0) {
+            opponent.addBleed(ar.addBleed);
+            GameAnim.playFloatingText(game, "🩸+" + ar.addBleed, new Color(180, 0, 0),
+                opponent == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
+                    : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
+        }
+
+        if (ar.passiveBleed > 0) {
+            opponent.addBleed(ar.passiveBleed);
+            GameAnim.playFloatingText(game, "🩸+" + ar.passiveBleed + "(🟡)", new Color(180, 0, 0),
+                opponent == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2 - 60, game.getHeight() * 3 / 4 - 120)
+                    : new Point(game.getWidth() / 2 - 60, game.getHeight() / 3 - 120));
+        }
+
+        if (ar.addBleedSelf > 0) {
+            self.addBleed(ar.addBleedSelf);
+            GameAnim.playFloatingText(game, "🩸+" + ar.addBleedSelf, new Color(180, 0, 0),
+                self == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
+                    : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
+        }
+
         if (ar.skipDefenseIfBurn && opponent.getBurnStacks() > 0) {
+            ar.skipDefense = true;
+        }
+
+        if (ar.skipDefenseIfBleed && opponent.getBleedStacks() > 0) {
             ar.skipDefense = true;
         }
 
@@ -123,6 +152,13 @@ public class EffectEngine {
             case CHAN_SIX_REVEAL:
                 game.handleChanSixReveal(self, opponent, selfHand, onDone);
                 break;
+            case SAIKI_THREE_DRAW:
+                game.handleSaikiThreeDraw(self, opponent, selfHand, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
+                break;
+            case SAIKI_SIX_JUDGE:
+                game.handleSaikiSixJudge(self, opponent, selfHand, onDone);
+                break;
+
             default:
                 break;
         }

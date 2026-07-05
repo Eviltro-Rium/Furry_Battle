@@ -13,8 +13,8 @@ public class LeonAI extends AIPlayer {
 
     @Override
     protected boolean shouldSkipCard(Card card) {
+        if (card.isItemCard()) return false;
         if (character == null) return false;
-        if (card.isPotion()) return false;
         int v = card.getValue();
         if (character.getCurrentHp() >= character.getMaxHp() && v == 2) return true;
         if (v == 1 && opponent != null && opponent.getBurnStacks() >= 4) return true;
@@ -22,49 +22,21 @@ public class LeonAI extends AIPlayer {
     }
 
     @Override
-    public Card chooseDefend(Card top, boolean excludePotion) {
-        Card zeroCard = null;
-        Card colorMatch = null;
-        Card numberMatch = null;
-        Card blackCard = null;
-        Card whiteCard = null;
+    protected int attackPriority(Card card, Card top) {
+        if (card.isItemCard()) return super.attackPriority(card, top);
+        int v = card.getValue();
+        if (v == 4 && opponent != null && opponent.getBurnStacks() > 0) return 75;
+        if (v == 7 && opponent != null && opponent.getBurnStacks() >= 2) return 70;
+        if (v == 0 && character != null && character.getCurrentHp() > character.getMaxHp() / 2) return 10;
+        return super.attackPriority(card, top);
+    }
 
-        Card.CardColor effective = top.getEffectiveColor();
-
-        for (Card c : hand) {
-            if (!isDefendCard(c, top)) continue;
-            if (c.isWhite() && c.getValue() == 0 && !c.isPotion() && !c.isDrawThree()) {
-                if (zeroCard == null) zeroCard = c;
-                continue;
-            }
-            if (c.isBlack()) {
-                if (blackCard == null) blackCard = c;
-                continue;
-            }
-            if (c.isWhite()) {
-                if (whiteCard == null) whiteCard = c;
-                continue;
-            }
-            if (c.getColor() == effective && colorMatch == null) {
-                colorMatch = c;
-            }
-            if (c.getValue() == top.getValue() && numberMatch == null) {
-                numberMatch = c;
-            }
-        }
-
-        if (zeroCard != null && character != null && character.getCurrentHp() <= character.getMaxHp() / 2) {
-            return zeroCard;
-        }
-        if (colorMatch != null) return colorMatch;
-        if (numberMatch != null) return numberMatch;
-        if (zeroCard != null) return zeroCard;
-        if (whiteCard != null) return whiteCard;
-        if (blackCard != null) {
-            Card.CardColor chosen = chooseBlackColorForDefend(top);
-            blackCard.setChosenColor(chosen);
-        }
-        return blackCard;
+    @Override
+    protected int defendPriority(Card card, Card top) {
+        if (card.isItemCard()) return super.defendPriority(card, top);
+        int v = card.getValue();
+        if (v == 0 && character != null && character.getCurrentHp() <= character.getMaxHp() / 3) return 80;
+        return super.defendPriority(card, top);
     }
 
     @Override

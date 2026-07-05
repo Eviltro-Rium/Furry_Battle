@@ -7,6 +7,7 @@ public class GameCharacter {
     protected int currentHp;
     protected int burnStacks;
     protected boolean frozen;
+    protected int bleedStacks;
 
     public enum FollowUp {
         FIVE_CHOICE,
@@ -17,7 +18,9 @@ public class GameCharacter {
         CHAN_FOUR_SWAP,
         CHAN_FIVE_REORDER,
         CHAN_SEVEN_JUDGE,
-        CHAN_SIX_REVEAL
+        CHAN_SIX_REVEAL,
+        SAIKI_THREE_DRAW,
+        SAIKI_SIX_JUDGE
     }
 
     public GameCharacter(String name, int maxHp) {
@@ -26,6 +29,7 @@ public class GameCharacter {
         this.currentHp = maxHp;
         this.burnStacks = 0;
         this.frozen = false;
+        this.bleedStacks = 0;
     }
 
     public String getName() { return name; }
@@ -48,11 +52,22 @@ public class GameCharacter {
 
     public void setFrozen(boolean frozen) { this.frozen = frozen; }
 
-    public boolean hasDebuff() { return burnStacks > 0 || frozen; }
+    public int getBleedStacks() { return bleedStacks; }
+
+    public void addBleed(int stacks) {
+        bleedStacks = Math.min(3, bleedStacks + stacks);
+    }
+
+    public void removeBleed(int stacks) {
+        bleedStacks = Math.max(0, bleedStacks - stacks);
+    }
+
+    public boolean hasDebuff() { return burnStacks > 0 || frozen || bleedStacks > 0; }
 
     public void clearAllDebuffs() {
         burnStacks = 0;
         frozen = false;
+        bleedStacks = 0;
     }
 
     public void takeDamage(int amount) {
@@ -67,6 +82,7 @@ public class GameCharacter {
         currentHp = maxHp;
         burnStacks = 0;
         frozen = false;
+        bleedStacks = 0;
     }
 
     public void applyPassive() {
@@ -93,6 +109,7 @@ public class GameCharacter {
         public boolean recalcDamageAfterDraw = false;
         public int addBurn = 0;
         public boolean skipDefenseIfBurn = false;
+        public boolean skipDefenseIfBleed = false;
         public int extraDamageIfBurn = 0;
         public boolean doubleDamageIfBurn = false;
         public int revealExtraDraw = 0;
@@ -102,6 +119,13 @@ public class GameCharacter {
         public boolean discardRevealed = false;
         public boolean addFreeze = false;
         public boolean blueUnblockable = false;
+        public boolean drawOpponentCard = false;
+        public int addBleed = 0;
+        public int passiveBleed = 0;
+        public int addBleedSelf = 0;
+        public boolean immuneDebuff = false;
+        public boolean reflectDebuff = false;
+        public int sharedDamage = 0;
         public List<FollowUp> followUps = new ArrayList<>();
         public String desc = "";
 
@@ -130,6 +154,11 @@ public class GameCharacter {
         public boolean clearSelfBuffs = false;
         public boolean endAttackerTurn = false;
         public boolean revealTopDeck = false;
+        public int addBleed = 0;
+        public boolean immuneDebuff = false;
+        public boolean reflectDebuff = false;
+        public int sharedDamage = 0;
+        public boolean discardRevealed = false;
         public String desc = "";
     }
 

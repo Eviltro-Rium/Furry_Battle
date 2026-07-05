@@ -15,11 +15,11 @@ mkdir -p "$OUT_DIR" "$DIST_DIR"
 echo "[1/4] 编译中..."
 $JAVA_HOME/bin/javac -sourcepath src -d "$OUT_DIR" \
   src/Card.java src/CardDeck.java src/GameCharacter.java \
-  src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java \
-  src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java \
+  src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java \
+  src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java \
   src/GameUI.java src/GameAnim.java src/EffectEngine.java \
-  src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Game.java \
-  src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java
+  src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Game.java \
+  src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java
 
 if [ $? -ne 0 ]; then
   echo "❌ 编译失败"

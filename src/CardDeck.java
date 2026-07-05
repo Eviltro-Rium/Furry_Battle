@@ -22,19 +22,25 @@ public class CardDeck {
         addCards(0, 4);
         addCards(7, 4);
         for (int i = 0; i < 2; i++) {
-            cards.add(new Card(0, Card.CardColor.BLACK));
+            cards.add(new Card(-1, Card.CardColor.BLACK));
         }
         for (int i = 0; i < 2; i++) {
-            cards.add(new Card(0, Card.CardColor.BLACK, true));
+            cards.add(new Card(-1, Card.CardColor.BLACK, true));
         }
         for (int v = 1; v <= 7; v++) {
             cards.add(new Card(v, Card.CardColor.WHITE));
         }
         for (int i = 0; i < 4; i++) {
-            cards.add(new Card(0, Card.CardColor.WHITE, false, true));
+            cards.add(new Card(-1, Card.CardColor.WHITE, false, true));
         }
         for (int i = 0; i < 2; i++) {
-            cards.add(new Card(0, Card.CardColor.WHITE, false, true, false));
+            cards.add(new Card(-1, Card.CardColor.WHITE, false, true, false));
+        }
+        for (int i = 0; i < 6; i++) {
+            cards.add(new Card(-1, Card.CardColor.WHITE, false, false, false, true));
+        }
+        for (int i = 0; i < 2; i++) {
+            cards.add(new Card(-1, Card.CardColor.WHITE, false, false, false, false, true));
         }
     }
 
