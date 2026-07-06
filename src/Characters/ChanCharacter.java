@@ -10,6 +10,7 @@ public class ChanCharacter extends GameCharacter {
     }
 
     @Override
+
     public void applyPassive() {
     }
 

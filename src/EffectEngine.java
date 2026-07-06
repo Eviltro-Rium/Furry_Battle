@@ -34,6 +34,11 @@ public class EffectEngine {
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
         }
 
+        if (ar.redAttack) {
+            ar.desc = ar.desc + " (🔴)";
+        }
+
+
         if (ar.addBleed > 0) {
             opponent.addBleed(ar.addBleed);
             GameAnim.playFloatingText(game, "🩸+" + ar.addBleed, new Color(180, 0, 0),
@@ -58,6 +63,14 @@ public class EffectEngine {
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
         }
 
+        if (ar.addBurnSelf > 0) {
+            self.addBurn(ar.addBurnSelf);
+            GameAnim.playFloatingText(game, "🔥+" + ar.addBurnSelf, new Color(255, 140, 0),
+                self == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
+                    : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
+        }
+
         if (ar.skipDefenseIfBurn && opponent.getBurnStacks() > 0) {
             ar.skipDefense = true;
         }
@@ -75,6 +88,12 @@ public class EffectEngine {
             int old = ar.damage / 2;
             ar.damage *= 2;
             ar.desc = ar.desc + " (灼伤翻倍" + old + "→" + ar.damage + ")";
+        }
+
+        if (ar.damagePerBurn > 0 && opponent.getBurnStacks() > 0) {
+            int extra = ar.damagePerBurn * opponent.getBurnStacks();
+            ar.damage += extra;
+            ar.desc = ar.desc + " (灼伤" + opponent.getBurnStacks() + "层+" + extra + ")";
         }
 
 
@@ -157,6 +176,15 @@ public class EffectEngine {
                 break;
             case SAIKI_SIX_JUDGE:
                 game.handleSaikiSixJudge(self, opponent, selfHand, onDone);
+                break;
+            case BLAZE_FOUR_DRAW:
+                game.handleBlazeFourDraw(self, opponent, selfHand, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
+                break;
+            case BLAZE_SEVEN_PLAY:
+                game.handleBlazeSevenPlay(self, opponent, selfHand, onDone);
+                break;
+            case BLAZE_DEFEND_TWO_DRAW:
+                game.handleBlazeDefendTwoDraw(self, opponent, selfHand, onDone);
                 break;
 
             default:

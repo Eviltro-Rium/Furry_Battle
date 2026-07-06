@@ -20,7 +20,10 @@ public class GameCharacter {
         CHAN_SEVEN_JUDGE,
         CHAN_SIX_REVEAL,
         SAIKI_THREE_DRAW,
-        SAIKI_SIX_JUDGE
+        SAIKI_SIX_JUDGE,
+        BLAZE_FOUR_DRAW,
+        BLAZE_SEVEN_PLAY,
+        BLAZE_DEFEND_TWO_DRAW
     }
 
     public GameCharacter(String name, int maxHp) {
@@ -93,6 +96,7 @@ public class GameCharacter {
         return false;
     }
 
+
     // ═══════════════════════════════════════
     //  Shared result types for subclasses
     // ═══════════════════════════════════════
@@ -112,6 +116,7 @@ public class GameCharacter {
         public boolean skipDefenseIfBleed = false;
         public int extraDamageIfBurn = 0;
         public boolean doubleDamageIfBurn = false;
+        public int damagePerBurn = 0;
         public int revealExtraDraw = 0;
         public int forceOpponentDiscard = 0;
         public boolean forceOpponentDiscardOne = false;
@@ -126,6 +131,10 @@ public class GameCharacter {
         public boolean immuneDebuff = false;
         public boolean reflectDebuff = false;
         public int sharedDamage = 0;
+        public int addBurnSelf = 0;
+        public boolean redAttack = false;
+
+        public boolean skipDefenseIfZero = false;
         public List<FollowUp> followUps = new ArrayList<>();
         public String desc = "";
 
@@ -155,11 +164,19 @@ public class GameCharacter {
         public boolean endAttackerTurn = false;
         public boolean revealTopDeck = false;
         public int addBleed = 0;
+
         public boolean immuneDebuff = false;
         public boolean reflectDebuff = false;
         public int sharedDamage = 0;
         public boolean discardRevealed = false;
+        public int healAllBurnPlus = 0;
+        public boolean counterDmgFromAttackerBurn = false;
+        public List<FollowUp> followUps = new ArrayList<>();
         public String desc = "";
+
+        public void addFollowUp(FollowUp fu) {
+            followUps.add(fu);
+        }
     }
 
     // ═══════════════════════════════════════

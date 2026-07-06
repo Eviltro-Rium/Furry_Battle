@@ -64,6 +64,8 @@ public class Game extends JFrame {
 
     protected Card saikiThreeDrawn;
     protected Runnable saikiThreeOnDone;
+    protected Runnable blazeFourOnDone;
+    protected Runnable blazeSevenOnDone;
     protected int selectedAICard;
     protected boolean chanFourSelectOpponent;
 
@@ -71,8 +73,17 @@ public class Game extends JFrame {
     protected EffectEngine effectEngine;
 
     private boolean busy = false;
+    private long lastBtnClickTime = 0;
+    private static final int BTN_COOLDOWN_MS = 300;
 
     void setBusy(boolean b) { busy = b; }
+
+    boolean canClickBtn() {
+        long now = System.currentTimeMillis();
+        if (now - lastBtnClickTime < BTN_COOLDOWN_MS) return false;
+        lastBtnClickTime = now;
+        return true;
+    }
 
     public Game() {
         deck = new CardDeck();
@@ -94,17 +105,19 @@ public class Game extends JFrame {
     }
 
     void onCharacterSelected(int playerChoice, int aiChoice) {
-        String[] charNames = {"Ryan", "Leon", "Chan", "Saiki"};
+        String[] charNames = {"Ryan", "Leon", "Chan", "Saiki", "Blaze"};
         playerChar = createCharacter(charNames[playerChoice], false);
         aiChar = createCharacter(charNames[aiChoice], true);
         ai = createAI(charNames[aiChoice], aiChar);
         if (ai instanceof LeonAI) ((LeonAI) ai).setOpponent(playerChar);
         if (ai instanceof SaikiAI) ((SaikiAI) ai).setCharacters(aiChar, playerChar);
+        if (ai instanceof BlazeAI) ((BlazeAI) ai).setOpponent(playerChar);
 
         handlers.put("Ryan", new RyanHandler(this));
         handlers.put("Leon", new LeonHandler(this));
         handlers.put("Chan", new ChanHandler(this));
         handlers.put("Saiki", new SaikiHandler(this));
+        handlers.put("Blaze", new BlazeHandler(this));
 
         initUI();
         startGame();
@@ -115,6 +128,7 @@ public class Game extends JFrame {
             case "Leon": return new LeonCharacter(isAI);
             case "Chan": return new ChanCharacter(isAI);
             case "Saiki": return new SaikiCharacter();
+            case "Blaze": return new BlazeCharacter(isAI);
             default: return new RyanCharacter(isAI);
         }
     }
@@ -128,6 +142,7 @@ public class Game extends JFrame {
                 sai.setCharacters(character, null);
                 return sai;
             }
+            case "Blaze": return new BlazeAI(character);
             default: return new RyanAI(character);
         }
     }
@@ -145,6 +160,7 @@ public class Game extends JFrame {
         forcedDiscard = false;
         hasPlayedBlackDefend = false;
         aiHasPlayedBlackDefend = false;
+        GameAnim.resetFloatOffsets();
 
         pendingFiveChoice = false;
         fiveChoiceCard = null;
@@ -159,6 +175,8 @@ public class Game extends JFrame {
         chanSevenKeepMode = false;
         saikiThreeDrawn = null;
         saikiThreeOnDone = null;
+        blazeFourOnDone = null;
+        blazeSevenOnDone = null;
         selectedAICard = -1;
         chanFourSelectOpponent = false;
         pendingDefendCard = null;
@@ -403,6 +421,23 @@ public class Game extends JFrame {
             return;
         }
 
+        if (card.isSwapHand()) {
+            GameAnim.playFlyAnimation(this, card, from, to, () -> {
+                showAIAttackCard(card);
+                List<Card> temp = new ArrayList<>(playerHand);
+                playerHand.clear();
+                playerHand.addAll(ai.getHand());
+                ai.getHand().clear();
+                ai.getHand().addAll(temp);
+                showAttackDesc("🔄 交换双方手牌，可继续出牌");
+                GameAnim.playFloatingText(this, "🔄交换", new Color(100, 80, 200),
+                    new Point(getWidth() / 2, getHeight() / 2 - 30));
+                currentPhase = Phase.PLAYER_PLAY;
+                updateDisplay();
+            });
+            return;
+        }
+
         if (card.isDrawThree()) {
             GameAnim.playFlyAnimation(this, card, from, to, () -> {
                 showAIAttackCard(card);
@@ -577,6 +612,8 @@ public class Game extends JFrame {
             aiHasPlayedBlackDefend = false;
             ai.aiHasDebuff = aiChar.hasDebuff();
             ai.aiDebuffCount = aiChar.getBurnStacks() + (aiChar.isFrozen() ? 1 : 0) + aiChar.getBleedStacks();
+            ai.aiFullHp = aiChar.getCurrentHp() >= aiChar.getMaxHp();
+            ai.aiOpponentHandSize = playerHand.size();
             Card defCard = ai.chooseDefend(top, true);
             if (defCard != null) {
                 if (defCard.isWhite()) {
@@ -717,6 +754,8 @@ public class Game extends JFrame {
         }
 
         ai.aiHasDebuff = aiChar.hasDebuff();
+        ai.aiFullHp = aiChar.getCurrentHp() >= aiChar.getMaxHp();
+        ai.aiOpponentHandSize = playerHand.size();
         Card defCard = ai.chooseDefend(top);
         if (defCard != null) {
             if (defCard.isBlack()) {
@@ -1190,6 +1229,8 @@ public class Game extends JFrame {
         CharacterHandler h = getHandler(playerChar);
         if (currentPhase == Phase.SAIKI_THREE_CHOICE && h instanceof SaikiHandler) {
             ((SaikiHandler) h).doSaikiThreeOpponentSelected(selectedAICard);
+        } else if (currentPhase == Phase.SAIKI_THREE_CHOICE && h instanceof BlazeHandler) {
+            ((BlazeHandler) h).doBlazeFourOpponentSelected(selectedAICard);
         } else if (h instanceof ChanHandler) {
             ((ChanHandler) h).doChanFourOpponentSelected(selectedAICard);
         }
@@ -1278,6 +1319,7 @@ public class Game extends JFrame {
 
         if (ai.hasPlayableCard(top)) {
             ai.aiDebuffCount = aiChar.getBurnStacks() + (aiChar.isFrozen() ? 1 : 0) + aiChar.getBleedStacks();
+            ai.aiOpponentHandSize = playerHand.size();
             Card toPlay = ai.choosePlay(top, aiChar.hasDebuff());
             if (toPlay != null) {
                 if (toPlay.isBlack()) {
@@ -1321,6 +1363,22 @@ public class Game extends JFrame {
                     GameAnim.playFlyAnimation(this, toPlay, from, to, () -> {
                         showAIAttackCard(toPlay);
                         applySuperPurifyEffect(aiChar, false);
+                        updateDisplay();
+                        resumeAITurn();
+                    });
+                } else if (toPlay.isSwapHand()) {
+                    Point from = GameAnim.getAIHandCenter(ui, this);
+                    Point to = GameAnim.getAttackPanelCenter(ui, this);
+                    GameAnim.playFlyAnimation(this, toPlay, from, to, () -> {
+                        showAIAttackCard(toPlay);
+                        List<Card> temp = new ArrayList<>(playerHand);
+                        playerHand.clear();
+                        playerHand.addAll(ai.getHand());
+                        ai.getHand().clear();
+                        ai.getHand().addAll(temp);
+                        showAttackDesc("🔄 AI交换双方手牌，继续出牌");
+                        GameAnim.playFloatingText(this, "🔄交换", new Color(100, 80, 200),
+                            new Point(getWidth() / 2, getHeight() / 2 - 30));
                         updateDisplay();
                         resumeAITurn();
                     });
@@ -1800,6 +1858,34 @@ public class Game extends JFrame {
         if (h != null) h.handleSaikiSevenAttack(self, opponent, selfHand, onDone);
     }
 
+    void handleBlazeFourDraw(GameCharacter self, GameCharacter opponent,
+                               List<Card> selfHand, List<Card> oppHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeFourDraw(self, opponent, selfHand, oppHand, onDone);
+    }
+
+    void handleBlazeSevenPlay(GameCharacter self, GameCharacter opponent,
+                                List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeSevenPlay(self, opponent, selfHand, onDone);
+    }
+
+    void doBlazeSevenConfirm() {
+        CharacterHandler h = getHandler(playerChar);
+        if (h instanceof BlazeHandler) ((BlazeHandler) h).doBlazeSevenConfirm();
+    }
+
+    void doBlazeFourOpponentSelected(int aiCardIndex) {
+        CharacterHandler h = getHandler(playerChar);
+        if (h instanceof BlazeHandler) ((BlazeHandler) h).doBlazeFourOpponentSelected(aiCardIndex);
+    }
+
+    void handleBlazeDefendTwoDraw(GameCharacter self, GameCharacter opponent,
+                                    List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeDefendTwoDraw(self, opponent, selfHand, onDone);
+    }
+
     void handleSaikiZeroAttack(GameCharacter self, GameCharacter opponent,
                                  List<Card> selfHand, Runnable onDone) {
         CharacterHandler h = getHandler(self);
@@ -1848,6 +1934,24 @@ public class Game extends JFrame {
                 GameAnim.playFloatingText(this, "+" + def.selfHeal, new Color(60, 220, 60), loc);
             }
 
+            if (def.addBurn > 0) {
+                attacker.addBurn(def.addBurn);
+                GameAnim.playFloatingText(this, "🔥+" + def.addBurn, new Color(255, 140, 0),
+                    attacker == playerChar
+                        ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
+                        : new Point(getWidth() / 2, getHeight() / 3 - 60));
+            }
+
+            if (def.healAllBurnPlus > 0) {
+                int totalBurn = playerChar.getBurnStacks() + aiChar.getBurnStacks();
+                int healAmt = totalBurn + def.healAllBurnPlus;
+                defender.heal(healAmt);
+                Point loc = defender == playerChar
+                    ? new Point(getWidth() / 2 - 60, getHeight() * 3 / 4 - 30)
+                    : new Point(getWidth() / 2 - 60, getHeight() / 3 - 30);
+                GameAnim.playFloatingText(this, "+" + healAmt, new Color(60, 220, 60), loc);
+            }
+
             if (def.counterDmg > 0) {
                 attacker.takeDamage(def.counterDmg);
                 Point loc = attacker == playerChar
@@ -1856,20 +1960,23 @@ public class Game extends JFrame {
                 GameAnim.playFloatingText(this, "-" + def.counterDmg, new Color(255, 60, 60), loc);
             }
 
+            if (def.counterDmgFromAttackerBurn) {
+                int burnCounter = attacker.getBurnStacks();
+                if (burnCounter > 0) {
+                    attacker.takeDamage(burnCounter);
+                    Point loc = attacker == playerChar
+                        ? new Point(getWidth() / 2 + 60, getHeight() * 3 / 4)
+                        : new Point(getWidth() / 2 + 60, getHeight() / 3);
+                    GameAnim.playFloatingText(this, "-" + burnCounter, new Color(255, 60, 60), loc);
+                }
+            }
+
             if (def.counterFromDamage > 0) {
                 attacker.takeDamage(def.counterFromDamage);
                 Point loc = attacker == playerChar
                     ? new Point(getWidth() / 2 + 60, getHeight() * 3 / 4)
                     : new Point(getWidth() / 2 + 60, getHeight() / 3);
                 GameAnim.playFloatingText(this, "-" + def.counterFromDamage, new Color(255, 60, 60), loc);
-            }
-
-            if (def.addBurn > 0) {
-                attacker.addBurn(def.addBurn);
-                GameAnim.playFloatingText(this, "🔥+" + def.addBurn, new Color(255, 140, 0),
-                    attacker == playerChar
-                        ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
-                        : new Point(getWidth() / 2, getHeight() / 3 - 60));
             }
 
             if (def.addFreeze) {
@@ -2038,6 +2145,18 @@ public class Game extends JFrame {
             }
             return;
         }
+        if (pendingDefendResult != null && !pendingDefendResult.followUps.isEmpty()) {
+            GameCharacter.DefenseResult def = pendingDefendResult;
+            pendingDefendResult = null;
+            List<Card> defHand = aiChar == playerChar ? playerHand : ai.getHand();
+            GameCharacter.FollowUp fu = def.followUps.get(0);
+            effectEngine.executeFollowUp(fu, null, aiChar, playerChar, defHand, () -> {
+                currentPhase = Phase.PLAYER_PLAY;
+                clearAIZones();
+                updateDisplay();
+            });
+            return;
+        }
         pendingDefendResult = null;
         Timer pause = new Timer(DELAY_EFFECT, ev -> {
             ((Timer)ev.getSource()).stop();
@@ -2079,6 +2198,19 @@ public class Game extends JFrame {
                     resumeAITurn();
                 });
             }
+            return;
+        }
+        if (pendingDefendResult != null && !pendingDefendResult.followUps.isEmpty()) {
+            GameCharacter.DefenseResult def = pendingDefendResult;
+            pendingDefendResult = null;
+            List<Card> defHand = playerChar == playerChar ? playerHand : ai.getHand();
+            GameCharacter.FollowUp fu = def.followUps.get(0);
+            effectEngine.executeFollowUp(fu, null, playerChar, aiChar, defHand, () -> {
+                currentPhase = Phase.AI_TURN;
+                clearAIZones();
+                updateDisplay();
+                resumeAITurn();
+            });
             return;
         }
         pendingDefendResult = null;
@@ -2385,13 +2517,15 @@ public class Game extends JFrame {
         } else if (currentPhase == Phase.PLAYER_SEVEN_CHOICE) {
             ui.sevenChoiceBtn.setText("✔ 确认选择");
         }
-        ui.playBtn.setEnabled(isPlayerPlay && selectedSingle >= 0);
-        ui.enterDiscardBtn.setEnabled(isPlayerPlay && !hasPlayedThisTurn);
-        ui.confirmDiscardBtn.setEnabled(isPlayerDiscard && !selectedMulti.isEmpty());
-        ui.defendBtn.setEnabled(isPlayerDefend && selectedSingle >= 0 && playerCanDefend());
-        ui.fiveHealBtn.setEnabled(isFiveChoice ? selectedSingle >= 0 : isSaikiThreeDone);
-        ui.fiveDamageBtn.setEnabled(isFiveChoice ? selectedSingle >= 0 : isSaikiThreeDone);
-        ui.sevenChoiceBtn.setEnabled((chanSevenKeepMode) || (chanFourSwapMode && selectedSingle >= 0) || (chanFourSelectOpponent && selectedAICard >= 0) || (isSaikiSix && selectedSingle >= 0) || (currentPhase == Phase.PLAYER_SEVEN_CHOICE && !chanFourSwapMode && !chanSevenKeepMode && !chanFourSelectOpponent && selectedAICard >= 0));
+        ui.playBtn.setEnabled(isPlayerPlay && selectedSingle >= 0 && !busy);
+        ui.enterDiscardBtn.setEnabled(isPlayerPlay && !hasPlayedThisTurn && !busy);
+        ui.confirmDiscardBtn.setEnabled(isPlayerDiscard && !selectedMulti.isEmpty() && !busy);
+        ui.defendBtn.setEnabled(isPlayerDefend && selectedSingle >= 0 && playerCanDefend() && !busy);
+        ui.endTurnBtn.setEnabled(isPlayerPlay && !busy);
+        ui.skipDefendBtn.setEnabled(!busy);
+        ui.fiveHealBtn.setEnabled((isFiveChoice ? selectedSingle >= 0 : isSaikiThreeDone) && !busy);
+        ui.fiveDamageBtn.setEnabled((isFiveChoice ? selectedSingle >= 0 : isSaikiThreeDone) && !busy);
+        ui.sevenChoiceBtn.setEnabled(((chanSevenKeepMode) || (chanFourSwapMode && selectedSingle >= 0) || (chanFourSelectOpponent && selectedAICard >= 0) || (isSaikiSix && selectedSingle >= 0) || (currentPhase == Phase.PLAYER_SEVEN_CHOICE && !chanFourSwapMode && !chanSevenKeepMode && !chanFourSelectOpponent && selectedAICard >= 0)) && !busy);
     }
 
     public static void main(String[] args) {

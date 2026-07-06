@@ -9,28 +9,33 @@ public class Card {
     private final boolean potion;
     private final boolean purify;
     private final boolean superPurify;
+    private final boolean swapHand;
 
     public Card(int value, CardColor color) {
-        this(value, color, false, false, false, false, false);
+        this(value, color, false, false, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo) {
-        this(value, color, drawTwo, false, false, false, false);
+        this(value, color, drawTwo, false, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean potion) {
-        this(value, color, drawTwo, false, potion, false, false);
+        this(value, color, drawTwo, false, potion, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion) {
-        this(value, color, drawTwo, drawThree, potion, false, false);
+        this(value, color, drawTwo, drawThree, potion, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify) {
-        this(value, color, drawTwo, drawThree, potion, purify, false);
+        this(value, color, drawTwo, drawThree, potion, purify, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify) {
+        this(value, color, drawTwo, drawThree, potion, purify, superPurify, false);
+    }
+
+    public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify, boolean swapHand) {
         this.value = value;
         this.color = color;
         this.chosenColor = null;
@@ -39,6 +44,7 @@ public class Card {
         this.potion = potion;
         this.purify = purify;
         this.superPurify = superPurify;
+        this.swapHand = swapHand;
     }
 
     public int getValue() {
@@ -77,8 +83,12 @@ public class Card {
         return superPurify;
     }
 
+    public boolean isSwapHand() {
+        return swapHand;
+    }
+
     public boolean isItemCard() {
-        return isPotion() || isBlack() || isDrawThree() || isPurify() || isSuperPurify();
+        return isPotion() || isBlack() || isDrawThree() || isPurify() || isSuperPurify() || isSwapHand();
     }
 
     public boolean isNumberCard() {
@@ -112,6 +122,7 @@ public class Card {
             if (drawThree) suffix = "+3";
             else if (superPurify) suffix = "✨✨";
             else if (purify) suffix = "✨";
+            else if (swapHand) suffix = "🔄";
             else suffix = String.valueOf(value);
             return "[白" + suffix + chosen + "]";
         }

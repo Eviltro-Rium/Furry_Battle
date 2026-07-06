@@ -277,31 +277,35 @@ public class GameUI {
         controlPanel.setPreferredSize(new Dimension(860, 46));
         controlPanel.setMinimumSize(new Dimension(460, 46));
 
-        playBtn         = makeBtn("⚔ 出牌",    new Color(240, 40, 50),  new Color(255, 80, 90));
-        enterDiscardBtn = makeBtn("🗑 弃牌",    new Color(240, 140, 0),  new Color(255, 170, 30));
-        confirmDiscardBtn=makeBtn("✔ 确认弃牌", new Color(240, 140, 0),  new Color(255, 170, 30));
-        cancelDiscardBtn= makeBtn("✘ 取消",    new Color(150, 140, 130),new Color(180, 170, 160));
-        endTurnBtn      = makeBtn("⏭ 结束回合",new Color(100, 60, 140), new Color(140, 90, 190));
-        defendBtn       = makeBtn("🛡 防御",    new Color(0, 110, 230),  new Color(40, 150, 255));
-        skipDefendBtn   = makeBtn("⏩ 跳过",  new Color(150, 140, 130),new Color(180, 170, 160));
-        fiveHealBtn     = makeBtn("❤ 恢复", new Color(0, 180, 80),   new Color(40, 210, 100));
-        fiveDamageBtn   = makeBtn("🗡 1.5倍",new Color(220, 40, 40), new Color(255, 70, 70));
-        sevenChoiceBtn  = makeBtn("🎯 指定弃牌", new Color(255, 120, 0), new Color(255, 160, 40));
+        playBtn         = makeBtn("⚔ 出牌",    new Color(255, 235, 235), new Color(255, 200, 200), new Color(200, 50, 50));
+        enterDiscardBtn = makeBtn("🗑 弃牌",    new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
+        confirmDiscardBtn=makeBtn("✔ 确认弃牌", new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
+        cancelDiscardBtn= makeBtn("✘ 取消",    new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
+        endTurnBtn      = makeBtn("⏭ 结束回合",new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
+        defendBtn       = makeBtn("🛡 防御",    new Color(230, 240, 255), new Color(200, 225, 255), new Color(0, 80, 180));
+        skipDefendBtn   = makeBtn("⏩ 跳过",  new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
+        fiveHealBtn     = makeBtn("❤ 恢复", new Color(230, 250, 235), new Color(200, 240, 210), new Color(0, 140, 60));
+        fiveDamageBtn   = makeBtn("🗡 1.5倍",new Color(255, 235, 235), new Color(255, 215, 215), new Color(180, 30, 30));
+        sevenChoiceBtn  = makeBtn("🎯 指定弃牌", new Color(255, 242, 225), new Color(255, 228, 195), new Color(200, 90, 0));
 
-        playBtn.addActionListener(e -> game.doPlay());
-        enterDiscardBtn.addActionListener(e -> game.doEnterDiscard());
-        confirmDiscardBtn.addActionListener(e -> game.doConfirmDiscard());
-        cancelDiscardBtn.addActionListener(e -> game.doCancelDiscard());
-        endTurnBtn.addActionListener(e -> game.doEndTurn());
-        defendBtn.addActionListener(e -> game.doPlayerDefend());
-        skipDefendBtn.addActionListener(e -> game.doPlayerSkipDefend());
-        fiveHealBtn.addActionListener(e -> game.doFiveChoiceHeal());
-        fiveDamageBtn.addActionListener(e -> game.doFiveChoiceDamage());
+        playBtn.addActionListener(e -> { if (game.canClickBtn()) game.doPlay(); });
+        enterDiscardBtn.addActionListener(e -> { if (game.canClickBtn()) game.doEnterDiscard(); });
+        confirmDiscardBtn.addActionListener(e -> { if (game.canClickBtn()) game.doConfirmDiscard(); });
+        cancelDiscardBtn.addActionListener(e -> { if (game.canClickBtn()) game.doCancelDiscard(); });
+        endTurnBtn.addActionListener(e -> { if (game.canClickBtn()) game.doEndTurn(); });
+        defendBtn.addActionListener(e -> { if (game.canClickBtn()) game.doPlayerDefend(); });
+        skipDefendBtn.addActionListener(e -> { if (game.canClickBtn()) game.doPlayerSkipDefend(); });
+        fiveHealBtn.addActionListener(e -> { if (game.canClickBtn()) game.doFiveChoiceHeal(); });
+        fiveDamageBtn.addActionListener(e -> { if (game.canClickBtn()) game.doFiveChoiceDamage(); });
         sevenChoiceBtn.addActionListener(e -> {
+            if (!game.canClickBtn()) return;
             if (game.chanSevenKeepMode) game.doChanSevenKeep();
             else if (game.chanFourSwapMode) game.doChanFourSwapConfirm();
             else if (game.chanFourSelectOpponent) game.doChanFourOpponentConfirm();
-            else if (game.currentPhase == Game.Phase.SAIKI_SIX_JUDGE) game.doSaikiSixConfirm();
+            else if (game.currentPhase == Game.Phase.SAIKI_SIX_JUDGE) {
+                if (game.getHandler(game.playerChar) instanceof BlazeHandler) game.doBlazeSevenConfirm();
+                else game.doSaikiSixConfirm();
+            }
             else if (game.currentPhase == Game.Phase.PLAYER_SEVEN_CHOICE) game.doSevenChoiceConfirm();
             else if (game.currentPhase == Game.Phase.SAIKI_THREE_CHOICE) game.doChanFourOpponentConfirm();
         });
@@ -318,7 +322,7 @@ public class GameUI {
         controlPanel.add(sevenChoiceBtn);
 
         // Status area (right side)
-        resetBtn = makeBtn("↻ 重新开始", new Color(100, 60, 140), new Color(140, 90, 190));
+        resetBtn = makeBtn("↻ 重新开始", new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
         resetBtn.addActionListener(e -> game.startGame());
 
         JPanel resetPanel = new JPanel(new BorderLayout(4, 4));
@@ -359,26 +363,33 @@ public class GameUI {
     }
 
     // ── Gradient button ──
-    private JButton makeBtn(String text, Color base, Color hover) {
+    private JButton makeBtn(String text, Color base, Color hover, Color textColor) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
-                GradientPaint gp = new GradientPaint(0, 0, base, 0, h, base.darker().darker());
-                if (getModel().isRollover()) {
-                    gp = new GradientPaint(0, 0, hover, 0, h, hover.darker().darker());
+                Color useBase = base;
+                Color useText = textColor;
+                if (!isEnabled()) {
+                    useBase = new Color(230, 230, 230);
+                    useText = new Color(180, 180, 180);
+                } else if (getModel().isRollover()) {
+                    useBase = hover;
                 }
-                g2.setPaint(gp);
+                g2.setColor(useBase);
                 g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
-                g2.setColor(new Color(255, 255, 255, 60));
+                g2.setColor(new Color(0, 0, 0, 25));
                 g2.drawRoundRect(0, 0, w - 1, h - 1, 10, 10);
+                g2.setColor(new Color(255, 255, 255, 80));
+                g2.drawRoundRect(1, 1, w - 3, h - 3, 9, 9);
                 g2.dispose();
+                setForeground(useText);
                 super.paintComponent(g);
             }
         };
         btn.setFont(new Font("微软雅黑", Font.BOLD, 13));
-        btn.setForeground(Color.WHITE);
+        btn.setForeground(textColor);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
@@ -539,6 +550,13 @@ public class GameUI {
             cornerLabel = new JLabel("+3🃏", SwingConstants.LEFT);
             cornerLabel.setFont(new Font("微软雅黑", Font.BOLD, 9));
             cornerLabel.setForeground(new Color(100, 90, 110));
+        } else if (card.isSwapHand()) {
+            numLabel = new JLabel("🔄", SwingConstants.CENTER);
+            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
+            numLabel.setForeground(new Color(80, 60, 120));
+            cornerLabel = new JLabel("🔄", SwingConstants.LEFT);
+            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
+            cornerLabel.setForeground(new Color(100, 80, 140));
         } else if (card.isWhite()) {
             numLabel = new JLabel(String.valueOf(card.getValue()), SwingConstants.CENTER);
             numLabel.setFont(new Font("Arial", Font.BOLD, 30));

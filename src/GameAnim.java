@@ -1,8 +1,32 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GameAnim {
+
+    private static final Map<String, Integer> floatOffsetMap = new HashMap<>();
+    private static final Map<String, Long> floatTimeMap = new HashMap<>();
+    private static final int FLOAT_ROW_HEIGHT = 32;
+    private static final long FLOAT_RESET_MS = 800;
+
+    private static int getFloatOffset(String key) {
+        long now = System.currentTimeMillis();
+        Long lastTime = floatTimeMap.get(key);
+        if (lastTime != null && now - lastTime > FLOAT_RESET_MS) {
+            floatOffsetMap.put(key, 0);
+        }
+        int offset = floatOffsetMap.getOrDefault(key, 0);
+        floatOffsetMap.put(key, offset + 1);
+        floatTimeMap.put(key, now);
+        return offset;
+    }
+
+    static void resetFloatOffsets() {
+        floatOffsetMap.clear();
+        floatTimeMap.clear();
+    }
 
     // ── Pre-rendered card images (reused) ──
     private static final int SW = 80, SH = 120;
@@ -235,12 +259,17 @@ public class GameAnim {
     }
 
     static void playFloatingText(Game game, String text, Color color, Point location) {
+        String key = location.x / 80 + "_" + location.y / 60;
+        int row = getFloatOffset(key);
+        int offsetY = -row * FLOAT_ROW_HEIGHT;
+
         JPanel glassPane = (JPanel) game.getGlassPane();
         JLabel label = new JLabel(text, SwingConstants.CENTER);
         label.setFont(new Font("Arial", Font.BOLD, 28));
         label.setForeground(color);
         label.setSize(220, 40);
-        label.setLocation(location.x - 110, location.y);
+        int startY = location.y + offsetY;
+        label.setLocation(location.x - 110, startY);
         glassPane.add(label);
         glassPane.setComponentZOrder(label, 0);
 
@@ -249,7 +278,7 @@ public class GameAnim {
         javax.swing.Timer t = new javax.swing.Timer(30, e -> {
             tick[0]++;
             double pct = (double) tick[0] / frames;
-            label.setLocation(label.getX(), location.y - (int) (60 * pct));
+            label.setLocation(label.getX(), startY - (int) (60 * pct));
             int alpha = (int) (255 * (1.0 - pct * pct));
             label.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, alpha)));
             glassPane.repaint(label.getBounds());
