@@ -12,6 +12,13 @@ public class EffectEngine {
     }
 
     void applyImmediateEffects(GameCharacter.AttackResult ar, GameCharacter self, GameCharacter opponent) {
+        if (ar.healEqualsDamage) {
+            int baseDmg = ar.damage;
+            if (ar.damagePerBleed > 0 && opponent.getBleedStacks() > 0) baseDmg += ar.damagePerBleed * opponent.getBleedStacks();
+            if (ar.damagePerBurn > 0 && opponent.getBurnStacks() > 0) baseDmg += ar.damagePerBurn * opponent.getBurnStacks();
+            if (ar.damagePerFieldBurn > 0) baseDmg += (int) Math.ceil(ar.damagePerFieldBurn * (self.getBurnStacks() + opponent.getBurnStacks()));
+            ar.selfHeal = baseDmg;
+        }
         self.heal(ar.selfHeal);
         if (ar.selfDamage > 0 && !self.isImmuneToBurn()) {
             self.takeDamage(ar.selfDamage);
@@ -71,6 +78,10 @@ public class EffectEngine {
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
         }
 
+        if (ar.passiveAfterSelfBurn && self.getBurnStacks() > 0) {
+            ar.damage += 1;
+        }
+
         if (ar.skipDefenseIfBurn && opponent.getBurnStacks() > 0) {
             ar.skipDefense = true;
         }
@@ -95,6 +106,22 @@ public class EffectEngine {
             ar.damage += extra;
             ar.desc = ar.desc + " (灼伤" + opponent.getBurnStacks() + "层+" + extra + ")";
         }
+
+        if (ar.damagePerFieldBurn > 0) {
+            int totalBurn = self.getBurnStacks() + opponent.getBurnStacks();
+            if (totalBurn > 0) {
+                int dmg = (int) Math.ceil(ar.damagePerFieldBurn * totalBurn);
+                ar.damage += dmg;
+                ar.desc = ar.desc + " (场上灼伤" + totalBurn + "层→" + dmg + ")";
+            }
+        }
+
+        if (ar.damagePerBleed > 0 && opponent.getBleedStacks() > 0) {
+            int extra = ar.damagePerBleed * opponent.getBleedStacks();
+            ar.damage += extra;
+            ar.desc = ar.desc + " (流血" + opponent.getBleedStacks() + "层+" + extra + ")";
+        }
+
 
 
 
@@ -180,9 +207,7 @@ public class EffectEngine {
             case BLAZE_FOUR_DRAW:
                 game.handleBlazeFourDraw(self, opponent, selfHand, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
                 break;
-            case BLAZE_SEVEN_PLAY:
-                game.handleBlazeSevenPlay(self, opponent, selfHand, onDone);
-                break;
+
             case BLAZE_DEFEND_TWO_DRAW:
                 game.handleBlazeDefendTwoDraw(self, opponent, selfHand, onDone);
                 break;

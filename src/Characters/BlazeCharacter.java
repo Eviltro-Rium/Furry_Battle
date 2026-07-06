@@ -6,7 +6,7 @@ public class BlazeCharacter extends GameCharacter {
     }
 
     public BlazeCharacter(boolean isAI) {
-        super(isAI ? "🐶 AI Blaze" : "🐶 Blaze", 75);
+        super(isAI ? "🐶 AI Blaze" : "🐶 Blaze", 85);
     }
 
     @Override
@@ -25,46 +25,52 @@ public class BlazeCharacter extends GameCharacter {
         switch (v) {
             case 1:
                 r.damage = 4 + burnBonus;
-                r.addBurn = 1;
-                r.desc = "1️⃣ " + r.damage + "点🗡️ + 🔥1" + (burnBonus > 0 ? "(灼烧+1)" : "");
+                r.desc = "1️⃣ " + r.damage + "点🗡️" + (burnBonus > 0 ? "(灼烧+1)" : "");
                 break;
             case 2:
-                r.addBurnSelf = 2;
                 r.damage = 2 + burnBonus;
-                r.desc = "2️⃣ 自身🔥2 → " + r.damage + "点🗡️" + (burnBonus > 0 ? "(灼烧+1)" : "");
+                r.addBurnSelf = 2;
+                r.skipDefense = true;
+                r.desc = "2️⃣ " + r.damage + "点🗡️(不可防御) → 自身🔥2" + (burnBonus > 0 ? "(灼烧+1)" : "");
                 break;
             case 3:
-                int burnRemoved = getBurnStacks();
-                r.selfHeal = 1 + burnRemoved;
-                r.clearSelfBuffs = true;
+                r.damage = 3 + burnBonus;
                 r.addBurn = 1;
-                r.desc = "3️⃣ 移除" + burnRemoved + "层灼伤 → 恢复" + r.selfHeal + "点 + 🔥1";
+                r.addBurnSelf = 1;
+                r.desc = "3️⃣ " + r.damage + "点🗡️ + 双方🔥1" + (burnBonus > 0 ? "(灼烧+1)" : "");
                 break;
             case 4:
                 r.addFollowUp(FollowUp.BLAZE_FOUR_DRAW);
                 r.desc = "4️⃣ 抽对手1牌判定";
                 break;
             case 5:
-                int burnRemoved5 = getBurnStacks();
-                r.clearSelfBuffs = true;
-                r.damage = burnRemoved5 * 2;
-                r.desc = "5️⃣ 移除" + burnRemoved5 + "层灼伤 → " + r.damage + "点🗡️(无被动)";
+                int burn5 = getBurnStacks();
+                r.addBurnSelf = 1;
+                r.passiveAfterSelfBurn = true;
+                r.damage = 2 * burn5;
+                r.desc = "5️⃣ 自身🔥1 → 2×" + burn5 + "点🗡️(含被动)";
                 break;
             case 6:
-                r.damage = 1 + burnBonus;
-                r.damagePerBurn = 2;
-                r.desc = "6️⃣ 1+2×灼伤伤害";
+                int burn6 = getBurnStacks();
+                r.selfHeal = (int) Math.ceil(1.5 * burn6);
+                r.clearSelfBuffs = true;
+                r.addBurn = 1;
+                r.skipDefense = true;
+                r.desc = "6️⃣ 恢复" + r.selfHeal + "点❤️(1.5×🔥" + burn6 + ") + 对手🔥1 + 跳过防御";
                 break;
             case 7:
-                r.addFollowUp(FollowUp.BLAZE_SEVEN_PLAY);
-                r.skipDefense = true;
-                r.desc = "7️⃣ 打1牌×1.5伤害(不可防御)";
+                r.addBurn = 2;
+                r.addBurnSelf = 2;
+                r.damagePerFieldBurn = 1.5;
+                r.passiveAfterSelfBurn = true;
+                r.damage = 0;
+                r.desc = "7️⃣ 双方🔥2 + 1.5×场上灼伤🗡️(含被动+1)";
                 break;
             case 0:
                 r.damage = 6;
                 r.skipDefense = true;
-                r.redAttack = true;
-                r.desc = "0️⃣ 6点🗡️(不可防御,🔴属性)";
+                r.addBurn = 2;
+                r.desc = "0️⃣ 6点🗡️(不可防御) + �2";
                 break;
             default:
                 r.desc = "";
@@ -96,8 +102,11 @@ public class BlazeCharacter extends GameCharacter {
 
         switch (v) {
             case 1:
-                r.selfHeal = getBurnStacks();
-                r.desc = "1️⃣ 恢复" + r.selfHeal + "点(=灼伤层数)";
+                int burn1 = getBurnStacks();
+                r.selfHeal = 2 + burn1;
+                r.addBurn = 1;
+                r.addBurnSelf = 1;
+                r.desc = "1️⃣ 恢复" + r.selfHeal + "点❤️(2+🔥" + burn1 + ") + 双方🔥1";
                 break;
             case 2:
                 r.addFollowUp(FollowUp.BLAZE_DEFEND_TWO_DRAW);
@@ -105,13 +114,14 @@ public class BlazeCharacter extends GameCharacter {
                 break;
             case 3:
                 r.addBurn = 2;
-                r.counterDmgFromAttackerBurn = true;
-                r.desc = "3️⃣ +2层灼伤 + 反击攻击方灼伤层数点";
+                r.counterDmgFromFieldBurn = true;
+                r.desc = "3️⃣ +2🔥 + 反击场上灼伤层数点🗡️";
                 break;
             case 0:
                 r.addBurn = 4;
+                r.blocked = (int) Math.ceil(incomingDamage / 2.0);
                 r.healAllBurnPlus = 3;
-                r.desc = "0️⃣ +4层灼伤 + 恢复场上所有灼烧+3点";
+                r.desc = "0️⃣ +4🔥 + 格挡½ + 恢复场上灼烧+3点❤️";
                 break;
             default:
                 r.desc = "";

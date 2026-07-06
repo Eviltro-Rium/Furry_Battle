@@ -6,8 +6,8 @@ public class CharacterSelectPanel extends JPanel {
     private static final String[][] CHARACTERS = {
         {"🐼 Ryan", "70", "被动：回合开始恢复1❤️"},
         {"🐻‍❄️ Leon", "100", "被动：免疫灼烧"},
-        {"� Chan", "80", "被动：回合开始抽1🃏"},
-        {"🐺 Saiki", "90", "被动：打出黄牌+1流血"},
+        {"🐼 Chan", "80", "被动：回合开始抽1🃏"},
+        {"🐺 Saiki", "80", "被动：打出黄牌+1流血"},
         {"🐶 Blaze", "75", "被动：灼烧时攻击+1🗡️"}
     };
 
@@ -41,9 +41,13 @@ public class CharacterSelectPanel extends JPanel {
         bg.setLayout(new BorderLayout(30, 20));
         bg.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
 
-        JLabel title = new JLabel("⚔  Furry Battle  ⚔", SwingConstants.CENTER);
+        JLabel title = new JLabel("Furry Battle", SwingConstants.CENTER);
         title.setFont(new Font("微软雅黑", Font.BOLD, 36));
         title.setForeground(new Color(255, 220, 180));
+        title.setIcon(GameIcons.uiBattleBig());
+        title.setHorizontalTextPosition(SwingConstants.CENTER);
+        title.setVerticalTextPosition(SwingConstants.BOTTOM);
+        title.setIconTextGap(4);
         title.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         bg.add(title, BorderLayout.NORTH);
 
@@ -62,7 +66,7 @@ public class CharacterSelectPanel extends JPanel {
         statusLabel.setForeground(new Color(200, 180, 150));
         south.add(statusLabel, BorderLayout.NORTH);
 
-        startBtn = new JButton("⚔  开始战斗") {
+        startBtn = new JButton(" 开始战斗") {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g;
@@ -81,6 +85,7 @@ public class CharacterSelectPanel extends JPanel {
         startBtn.setOpaque(false);
         startBtn.setEnabled(false);
         startBtn.setPreferredSize(new Dimension(220, 50));
+        startBtn.setIcon(GameIcons.uiBattle());
         startBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         startBtn.addActionListener(e -> onStart());
         JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -158,7 +163,7 @@ public class CharacterSelectPanel extends JPanel {
         nameLabel.setForeground(new Color(255, 220, 170));
         card.add(nameLabel, BorderLayout.NORTH);
 
-        JLabel hpLabel = new JLabel("❤️ " + hp);
+        JLabel hpLabel = new JLabel("HP " + hp);
         hpLabel.setFont(new Font("微软雅黑", Font.PLAIN, 15));
         hpLabel.setForeground(new Color(240, 100, 80));
         card.add(hpLabel, BorderLayout.WEST);

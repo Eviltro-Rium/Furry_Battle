@@ -79,7 +79,7 @@ public class GameUI {
         JPanel topPanel = new JPanel(new BorderLayout(6, 2));
         topPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("✦ Furry Battle ✦", SwingConstants.CENTER) {
+        JLabel titleLabel = new JLabel("Furry Battle", SwingConstants.CENTER) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -100,6 +100,9 @@ public class GameUI {
         };
         titleLabel.setFont(new Font("Arial", Font.BOLD, 34));
         titleLabel.setForeground(new Color(240, 80, 60));
+        titleLabel.setIcon(GameIcons.uiSparkling());
+        titleLabel.setHorizontalTextPosition(SwingConstants.CENTER);
+        titleLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
         topPanel.add(titleLabel, BorderLayout.NORTH);
 
         JPanel infoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 24, 2));
@@ -218,7 +221,7 @@ public class GameUI {
         aiRevealPanel = new JPanel();
         aiRevealPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 4, 4));
         aiRevealPanel.setBackground(new Color(230, 240, 255));
-        aiRevealPanel.setBorder(makeGlowBorder("📋 判定", new Color(60, 100, 200)));
+        aiRevealPanel.setBorder(makeGlowBorder("判定", new Color(60, 100, 200)));
         aiRevealPanel.setPreferredSize(new Dimension(180, 0));
 
         JPanel aiAreaWrap = new JPanel(new BorderLayout(8, 0));
@@ -277,16 +280,24 @@ public class GameUI {
         controlPanel.setPreferredSize(new Dimension(860, 46));
         controlPanel.setMinimumSize(new Dimension(460, 46));
 
-        playBtn         = makeBtn("⚔ 出牌",    new Color(255, 235, 235), new Color(255, 200, 200), new Color(200, 50, 50));
-        enterDiscardBtn = makeBtn("🗑 弃牌",    new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
-        confirmDiscardBtn=makeBtn("✔ 确认弃牌", new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
+        playBtn         = makeBtn(" 出牌",    new Color(255, 235, 235), new Color(255, 200, 200), new Color(200, 50, 50));
+        enterDiscardBtn = makeBtn(" 弃牌",    new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
+        confirmDiscardBtn=makeBtn(" 确认弃牌", new Color(255, 245, 225), new Color(255, 230, 195), new Color(180, 110, 0));
         cancelDiscardBtn= makeBtn("✘ 取消",    new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
-        endTurnBtn      = makeBtn("⏭ 结束回合",new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
-        defendBtn       = makeBtn("🛡 防御",    new Color(230, 240, 255), new Color(200, 225, 255), new Color(0, 80, 180));
-        skipDefendBtn   = makeBtn("⏩ 跳过",  new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
+        endTurnBtn      = makeBtn(" 结束回合",new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
+        defendBtn       = makeBtn(" 防御",    new Color(230, 240, 255), new Color(200, 225, 255), new Color(0, 80, 180));
+        skipDefendBtn   = makeBtn(" 跳过",  new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
         fiveHealBtn     = makeBtn("❤ 恢复", new Color(230, 250, 235), new Color(200, 240, 210), new Color(0, 140, 60));
-        fiveDamageBtn   = makeBtn("🗡 1.5倍",new Color(255, 235, 235), new Color(255, 215, 215), new Color(180, 30, 30));
-        sevenChoiceBtn  = makeBtn("🎯 指定弃牌", new Color(255, 242, 225), new Color(255, 228, 195), new Color(200, 90, 0));
+        fiveDamageBtn   = makeBtn(" 1.5倍",new Color(255, 235, 235), new Color(255, 215, 215), new Color(180, 30, 30));
+        sevenChoiceBtn  = makeBtn(" 指定弃牌", new Color(255, 242, 225), new Color(255, 228, 195), new Color(200, 90, 0));
+
+        playBtn.setIcon(GameIcons.uiBattle());
+        enterDiscardBtn.setIcon(GameIcons.uiTrash());
+        confirmDiscardBtn.setIcon(GameIcons.uiTick());
+        endTurnBtn.setIcon(GameIcons.uiSkip());
+        defendBtn.setIcon(GameIcons.uiShield());
+        skipDefendBtn.setIcon(GameIcons.uiSkip());
+        fiveDamageBtn.setIcon(GameIcons.uiSword());
 
         playBtn.addActionListener(e -> { if (game.canClickBtn()) game.doPlay(); });
         enterDiscardBtn.addActionListener(e -> { if (game.canClickBtn()) game.doEnterDiscard(); });
@@ -303,8 +314,7 @@ public class GameUI {
             else if (game.chanFourSwapMode) game.doChanFourSwapConfirm();
             else if (game.chanFourSelectOpponent) game.doChanFourOpponentConfirm();
             else if (game.currentPhase == Game.Phase.SAIKI_SIX_JUDGE) {
-                if (game.getHandler(game.playerChar) instanceof BlazeHandler) game.doBlazeSevenConfirm();
-                else game.doSaikiSixConfirm();
+                game.doSaikiSixConfirm();
             }
             else if (game.currentPhase == Game.Phase.PLAYER_SEVEN_CHOICE) game.doSevenChoiceConfirm();
             else if (game.currentPhase == Game.Phase.SAIKI_THREE_CHOICE) game.doChanFourOpponentConfirm();
@@ -322,8 +332,9 @@ public class GameUI {
         controlPanel.add(sevenChoiceBtn);
 
         // Status area (right side)
-        resetBtn = makeBtn("↻ 重新开始", new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
-        resetBtn.addActionListener(e -> game.startGame());
+        resetBtn = makeBtn(" 重新开始", new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
+        resetBtn.setIcon(GameIcons.uiRestart());
+        resetBtn.addActionListener(e -> game.backToSelect());
 
         JPanel resetPanel = new JPanel(new BorderLayout(4, 4));
         resetPanel.setOpaque(false);
@@ -441,9 +452,7 @@ public class GameUI {
         cardPanel.setPreferredSize(new Dimension(56, 82));
         cardPanel.setOpaque(false);
 
-        JLabel qLabel = new JLabel("✦", SwingConstants.CENTER);
-        qLabel.setFont(new Font("Arial", Font.BOLD, 26));
-        qLabel.setForeground(new Color(220, 235, 255));
+        JLabel qLabel = GameIcons.makeIconLabel(GameIcons.scaled("/icons/ui_icons/sparkling.png", 26, 26));
         cardPanel.add(qLabel, BorderLayout.CENTER);
         return cardPanel;
     }
@@ -510,53 +519,35 @@ public class GameUI {
         JLabel numLabel;
         JLabel cornerLabel;
         if (card.isBlack()) {
-            numLabel = new JLabel("✦", SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
-            numLabel.setForeground(new Color(230, 230, 240));
-            String corner = card.isDrawTwo() ? "⚡+2" : "✦";
-            cornerLabel = new JLabel(corner, SwingConstants.LEFT);
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardBlack());
+            JLabel cornerLbl;
             if (card.isDrawTwo()) {
-                cornerLabel.setFont(new Font("Arial", Font.BOLD, 12));
-                cornerLabel.setForeground(new Color(255, 210, 50));
+                cornerLbl = new JLabel("+2", SwingConstants.LEFT);
+                cornerLbl.setFont(new Font("Arial", Font.BOLD, 12));
+                cornerLbl.setForeground(new Color(255, 210, 50));
+                cornerLbl.setIcon(GameIcons.cardDrawThreeSmall());
+                cornerLbl.setHorizontalTextPosition(SwingConstants.RIGHT);
             } else {
-                cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
-                cornerLabel.setForeground(new Color(200, 200, 210));
+                cornerLbl = GameIcons.makeIconLabel(GameIcons.cardBlackSmall());
             }
+            cornerLabel = cornerLbl;
         } else if (card.isSuperPurify()) {
-            numLabel = new JLabel("✨✨", SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
-            numLabel.setForeground(new Color(80, 70, 90));
-            cornerLabel = new JLabel("✨✨", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 9));
-            cornerLabel.setForeground(new Color(100, 90, 110));
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardSuperPurify());
+            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardSuperPurifySmall());
         } else if (card.isPurify()) {
-            numLabel = new JLabel("✨", SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
-            numLabel.setForeground(new Color(80, 70, 90));
-            cornerLabel = new JLabel("✨", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
-            cornerLabel.setForeground(new Color(100, 90, 110));
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardPurify());
+            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardPurifySmall());
         } else if (card.isPotion()) {
-            numLabel = new JLabel("🧪", SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 30));
-            numLabel.setForeground(new Color(80, 70, 90));
-            cornerLabel = new JLabel("🧪", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
-            cornerLabel.setForeground(new Color(100, 90, 110));
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardPotion());
+            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardPotionSmall());
         } else if (card.isDrawThree()) {
-            numLabel = new JLabel("🃏", SwingConstants.CENTER);
-            numLabel.setFont(new Font("微软雅黑", Font.PLAIN, 30));
-            numLabel.setForeground(new Color(60, 60, 80));
-            cornerLabel = new JLabel("+3🃏", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("微软雅黑", Font.BOLD, 9));
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardDrawThree());
+            cornerLabel = new JLabel("+3", SwingConstants.LEFT);
+            cornerLabel.setFont(new Font("Arial", Font.BOLD, 9));
             cornerLabel.setForeground(new Color(100, 90, 110));
         } else if (card.isSwapHand()) {
-            numLabel = new JLabel("🔄", SwingConstants.CENTER);
-            numLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
-            numLabel.setForeground(new Color(80, 60, 120));
-            cornerLabel = new JLabel("🔄", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 10));
-            cornerLabel.setForeground(new Color(100, 80, 140));
+            numLabel = GameIcons.makeIconLabel(GameIcons.cardSwapHand());
+            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardSwapHandSmall());
         } else if (card.isWhite()) {
             numLabel = new JLabel(String.valueOf(card.getValue()), SwingConstants.CENTER);
             numLabel.setFont(new Font("Arial", Font.BOLD, 30));
@@ -669,7 +660,7 @@ public class GameUI {
         }
 
         JOptionPane pane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-        JDialog dialog = pane.createDialog(parent, "✦ 选择黑牌颜色");
+        JDialog dialog = pane.createDialog(parent, "选择黑牌颜色");
         dialog.setVisible(true);
         return result[0];
     }

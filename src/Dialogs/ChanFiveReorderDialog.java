@@ -129,7 +129,7 @@ public class ChanFiveReorderDialog extends JDialog {
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 4));
         btnRow.setOpaque(false);
 
-        confirmBtn = new JButton("✔ 确认排序") {
+        confirmBtn = new JButton(" 确认排序") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -148,6 +148,7 @@ public class ChanFiveReorderDialog extends JDialog {
         confirmBtn.setOpaque(false);
         confirmBtn.setPreferredSize(new Dimension(140, 38));
         confirmBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        confirmBtn.setIcon(GameIcons.uiTick());
         confirmBtn.addActionListener(e -> {
             for (Card s : slots) {
                 if (s == null) {
@@ -159,7 +160,7 @@ public class ChanFiveReorderDialog extends JDialog {
             dispose();
         });
 
-        JButton resetBtn = new JButton("↺ 重置") {
+        JButton resetBtn = new JButton(" 重置") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -178,6 +179,7 @@ public class ChanFiveReorderDialog extends JDialog {
         resetBtn.setOpaque(false);
         resetBtn.setPreferredSize(new Dimension(100, 38));
         resetBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        resetBtn.setIcon(GameIcons.uiRestart());
         resetBtn.addActionListener(e -> {
             for (int i = 0; i < slots.length; i++) {
                 if (slots[i] != null) {
@@ -242,15 +244,26 @@ public class ChanFiveReorderDialog extends JDialog {
                 cp.setPreferredSize(new Dimension(56, 80));
                 cp.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                String text;
-                if (card.isBlack()) text = "✦";
-                else if (card.isPotion()) text = "🧪";
-                else if (card.isDrawThree()) text = "+3";
-                else text = String.valueOf(card.getValue());
-
-                JLabel cl = new JLabel(text, SwingConstants.CENTER);
-                cl.setFont(new Font("Arial", Font.BOLD, 20));
-                cl.setForeground(Color.WHITE);
+                JLabel cl;
+                if (card.isBlack()) {
+                    cl = GameIcons.makeIconLabel(GameIcons.scaled("/icons/card_icons/color_palette.png", 24, 24));
+                } else if (card.isPotion()) {
+                    cl = GameIcons.makeIconLabel(GameIcons.scaled("/icons/card_icons/potion.png", 24, 24));
+                } else if (card.isPurify()) {
+                    cl = GameIcons.makeIconLabel(GameIcons.scaled("/icons/card_icons/purify.png", 24, 24));
+                } else if (card.isSuperPurify()) {
+                    cl = GameIcons.makeIconLabel(GameIcons.scaled("/icons/card_icons/super_purify.png", 24, 24));
+                } else if (card.isDrawThree()) {
+                    cl = new JLabel("+3", SwingConstants.CENTER);
+                    cl.setFont(new Font("Arial", Font.BOLD, 20));
+                    cl.setForeground(Color.WHITE);
+                } else if (card.isSwapHand()) {
+                    cl = GameIcons.makeIconLabel(GameIcons.scaled("/icons/card_icons/swap_cards.png", 24, 24));
+                } else {
+                    cl = new JLabel(String.valueOf(card.getValue()), SwingConstants.CENTER);
+                    cl.setFont(new Font("Arial", Font.BOLD, 20));
+                    cl.setForeground(Color.WHITE);
+                }
                 cp.add(cl, BorderLayout.CENTER);
 
                 cp.addMouseListener(new MouseAdapter() {
@@ -275,16 +288,33 @@ public class ChanFiveReorderDialog extends JDialog {
     private void refreshSlots() {
         for (int i = 0; i < slots.length; i++) {
             if (slots[i] != null) {
-                String text;
-                if (slots[i].isBlack()) text = "✦";
-                else if (slots[i].isPotion()) text = "🧪";
-                else if (slots[i].isDrawThree()) text = "+3";
-                else text = String.valueOf(slots[i].getValue());
-                slotLabels[i].setText(text);
-                slotLabels[i].setForeground(Color.WHITE);
                 slotLabels[i].setFont(new Font("Arial", Font.BOLD, 24));
+                slotLabels[i].setForeground(Color.WHITE);
+                if (slots[i].isBlack()) {
+                    slotLabels[i].setIcon(GameIcons.scaled("/icons/card_icons/color_palette.png", 28, 28));
+                    slotLabels[i].setText("");
+                } else if (slots[i].isPotion()) {
+                    slotLabels[i].setIcon(GameIcons.scaled("/icons/card_icons/potion.png", 28, 28));
+                    slotLabels[i].setText("");
+                } else if (slots[i].isPurify()) {
+                    slotLabels[i].setIcon(GameIcons.scaled("/icons/card_icons/purify.png", 28, 28));
+                    slotLabels[i].setText("");
+                } else if (slots[i].isSuperPurify()) {
+                    slotLabels[i].setIcon(GameIcons.scaled("/icons/card_icons/super_purify.png", 28, 28));
+                    slotLabels[i].setText("");
+                } else if (slots[i].isDrawThree()) {
+                    slotLabels[i].setIcon(null);
+                    slotLabels[i].setText("+3");
+                } else if (slots[i].isSwapHand()) {
+                    slotLabels[i].setIcon(GameIcons.scaled("/icons/card_icons/swap_cards.png", 28, 28));
+                    slotLabels[i].setText("");
+                } else {
+                    slotLabels[i].setIcon(null);
+                    slotLabels[i].setText(String.valueOf(slots[i].getValue()));
+                }
             } else {
                 slotLabels[i].setText("");
+                slotLabels[i].setIcon(null);
             }
             slotPanels[i].repaint();
         }

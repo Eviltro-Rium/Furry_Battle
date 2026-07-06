@@ -15,6 +15,13 @@ public class SaikiAI extends AIPlayer {
     }
 
     @Override
+    protected boolean shouldSkipCard(Card card) {
+        if (card.isItemCard()) return false;
+        if (card.getValue() == 7 && opponent != null && opponent.getBleedStacks() == 0) return true;
+        return false;
+    }
+
+    @Override
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();

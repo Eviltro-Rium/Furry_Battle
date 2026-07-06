@@ -65,7 +65,7 @@ public class Game extends JFrame {
     protected Card saikiThreeDrawn;
     protected Runnable saikiThreeOnDone;
     protected Runnable blazeFourOnDone;
-    protected Runnable blazeSevenOnDone;
+
     protected int selectedAICard;
     protected boolean chanFourSelectOpponent;
 
@@ -147,6 +147,16 @@ public class Game extends JFrame {
         }
     }
 
+    void backToSelect() {
+        if (aiTimer != null && aiTimer.isRunning()) aiTimer.stop();
+        if (fadeTimer != null && fadeTimer.isRunning()) fadeTimer.stop();
+        busy = false;
+        CharacterSelectPanel selectPanel = new CharacterSelectPanel(this);
+        setContentPane(selectPanel);
+        revalidate();
+        repaint();
+    }
+
     void startGame() {
         deck.reset();
         discardPile.clear();
@@ -176,7 +186,7 @@ public class Game extends JFrame {
         saikiThreeDrawn = null;
         saikiThreeOnDone = null;
         blazeFourOnDone = null;
-        blazeSevenOnDone = null;
+
         selectedAICard = -1;
         chanFourSelectOpponent = false;
         pendingDefendCard = null;
@@ -990,6 +1000,46 @@ public class Game extends JFrame {
                 return;
             }
 
+            if (card.isPurify()) {
+                card.setChosenColor(top.getEffectiveColor());
+
+                int cardIdx = selectedSingle;
+                Point from = GameAnim.getPlayerHandCardCenter(ui, this, cardIdx);
+                Point to = GameAnim.getAttackPanelCenter(ui, this);
+
+                playerHand.remove(cardIdx);
+                discardPile.addFirst(card);
+                selectedSingle = -1;
+                pendingDefendCard = null;
+
+                GameAnim.playFlyAnimation(this, card, from, to, () -> {
+                    applyPurifyEffect(playerChar, true);
+                    busy = false;
+                    updateDisplay();
+                });
+                return;
+            }
+
+            if (card.isSuperPurify()) {
+                card.setChosenColor(top.getEffectiveColor());
+
+                int cardIdx = selectedSingle;
+                Point from = GameAnim.getPlayerHandCardCenter(ui, this, cardIdx);
+                Point to = GameAnim.getAttackPanelCenter(ui, this);
+
+                playerHand.remove(cardIdx);
+                discardPile.addFirst(card);
+                selectedSingle = -1;
+                pendingDefendCard = null;
+
+                GameAnim.playFlyAnimation(this, card, from, to, () -> {
+                    applySuperPurifyEffect(playerChar, true);
+                    busy = false;
+                    updateDisplay();
+                });
+                return;
+            }
+
             if (!canDefend(card, top)) {
                 busy = false;
                 showMessage("该牌无法防御！需数字≤3且颜色匹配" + colorName(top.getEffectiveColor()));
@@ -1469,8 +1519,8 @@ public class Game extends JFrame {
     }
 
     protected void refillDeckIfNeeded() {
-        if (!deck.isEmpty() || discardPile.size() <= 1) return;
-        Card top = discardPile.removeFirst();
+        if (!deck.isEmpty() || discardPile.isEmpty()) return;
+        Card topCard = discardPile.removeFirst();
         for (Card c : discardPile) {
             if (c.isBlack() || c.isWhite()) {
                 c.setChosenColor(null);
@@ -1478,7 +1528,7 @@ public class Game extends JFrame {
         }
         deck.addCards(discardPile);
         discardPile.clear();
-        discardPile.addFirst(top);
+        discardPile.addFirst(topCard);
         deck.shuffle();
     }
 
@@ -1864,16 +1914,7 @@ public class Game extends JFrame {
         if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeFourDraw(self, opponent, selfHand, oppHand, onDone);
     }
 
-    void handleBlazeSevenPlay(GameCharacter self, GameCharacter opponent,
-                                List<Card> selfHand, Runnable onDone) {
-        CharacterHandler h = getHandler(self);
-        if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeSevenPlay(self, opponent, selfHand, onDone);
-    }
 
-    void doBlazeSevenConfirm() {
-        CharacterHandler h = getHandler(playerChar);
-        if (h instanceof BlazeHandler) ((BlazeHandler) h).doBlazeSevenConfirm();
-    }
 
     void doBlazeFourOpponentSelected(int aiCardIndex) {
         CharacterHandler h = getHandler(playerChar);
@@ -1942,6 +1983,14 @@ public class Game extends JFrame {
                         : new Point(getWidth() / 2, getHeight() / 3 - 60));
             }
 
+            if (def.addBurnSelf > 0) {
+                defender.addBurn(def.addBurnSelf);
+                GameAnim.playFloatingText(this, "🔥+" + def.addBurnSelf, new Color(255, 140, 0),
+                    defender == playerChar
+                        ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
+                        : new Point(getWidth() / 2, getHeight() / 3 - 60));
+            }
+
             if (def.healAllBurnPlus > 0) {
                 int totalBurn = playerChar.getBurnStacks() + aiChar.getBurnStacks();
                 int healAmt = totalBurn + def.healAllBurnPlus;
@@ -1968,6 +2017,17 @@ public class Game extends JFrame {
                         ? new Point(getWidth() / 2 + 60, getHeight() * 3 / 4)
                         : new Point(getWidth() / 2 + 60, getHeight() / 3);
                     GameAnim.playFloatingText(this, "-" + burnCounter, new Color(255, 60, 60), loc);
+                }
+            }
+
+            if (def.counterDmgFromFieldBurn) {
+                int fieldBurn = playerChar.getBurnStacks() + aiChar.getBurnStacks();
+                if (fieldBurn > 0) {
+                    attacker.takeDamage(fieldBurn);
+                    Point loc = attacker == playerChar
+                        ? new Point(getWidth() / 2 + 60, getHeight() * 3 / 4)
+                        : new Point(getWidth() / 2 + 60, getHeight() / 3);
+                    GameAnim.playFloatingText(this, "-" + fieldBurn, new Color(255, 60, 60), loc);
                 }
             }
 
@@ -2404,24 +2464,25 @@ public class Game extends JFrame {
             }
         }
         if (aiChar.getBurnStacks() > 0) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < aiChar.getBurnStacks(); i++) sb.append("🔥");
-            JLabel burnLbl = new JLabel(sb.toString());
-            burnLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-            burnLbl.setForeground(new Color(255, 80, 0));
-            ui.aiHandPanel.add(burnLbl);
+            JPanel burnPnl = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            burnPnl.setOpaque(false);
+            for (int i = 0; i < aiChar.getBurnStacks(); i++) {
+                burnPnl.add(GameIcons.makeIconLabel(GameIcons.buffBurn()));
+            }
+            ui.aiHandPanel.add(burnPnl);
         }
         if (aiChar.isFrozen()) {
-            JLabel freezeLbl = new JLabel("❄️");
-            freezeLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-            freezeLbl.setForeground(new Color(100, 180, 255));
-            ui.aiHandPanel.add(freezeLbl);
+            ui.aiHandPanel.add(GameIcons.makeIconLabel(GameIcons.buffFreeze()));
         }
         if (aiChar.getBleedStacks() > 0) {
-            JLabel bleedLbl = new JLabel("🩸x" + aiChar.getBleedStacks());
-            bleedLbl.setFont(new Font("微软雅黑", Font.PLAIN, 12));
-            bleedLbl.setForeground(new Color(180, 0, 0));
-            ui.aiHandPanel.add(bleedLbl);
+            JPanel bleedPnl = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            bleedPnl.setOpaque(false);
+            bleedPnl.add(GameIcons.makeIconLabel(GameIcons.buffBleed()));
+            JLabel bleedNum = new JLabel("x" + aiChar.getBleedStacks());
+            bleedNum.setFont(new Font("Arial", Font.BOLD, 12));
+            bleedNum.setForeground(new Color(180, 0, 0));
+            bleedPnl.add(bleedNum);
+            ui.aiHandPanel.add(bleedPnl);
         }
         ui.aiHandPanel.revalidate();
         ui.aiHandPanel.repaint();
@@ -2450,24 +2511,25 @@ public class Game extends JFrame {
             }
         }
         if (playerChar.getBurnStacks() > 0) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < playerChar.getBurnStacks(); i++) sb.append("🔥");
-            JLabel burnLbl = new JLabel(sb.toString());
-            burnLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-            burnLbl.setForeground(new Color(255, 80, 0));
-            ui.playerHandPanel.add(burnLbl);
+            JPanel burnPnl = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            burnPnl.setOpaque(false);
+            for (int i = 0; i < playerChar.getBurnStacks(); i++) {
+                burnPnl.add(GameIcons.makeIconLabel(GameIcons.buffBurn()));
+            }
+            ui.playerHandPanel.add(burnPnl);
         }
         if (playerChar.isFrozen()) {
-            JLabel freezeLbl = new JLabel("❄️");
-            freezeLbl.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-            freezeLbl.setForeground(new Color(100, 180, 255));
-            ui.playerHandPanel.add(freezeLbl);
+            ui.playerHandPanel.add(GameIcons.makeIconLabel(GameIcons.buffFreeze()));
         }
         if (playerChar.getBleedStacks() > 0) {
-            JLabel bleedLbl = new JLabel("🩸x" + playerChar.getBleedStacks());
-            bleedLbl.setFont(new Font("微软雅黑", Font.PLAIN, 12));
-            bleedLbl.setForeground(new Color(180, 0, 0));
-            ui.playerHandPanel.add(bleedLbl);
+            JPanel bleedPnl = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            bleedPnl.setOpaque(false);
+            bleedPnl.add(GameIcons.makeIconLabel(GameIcons.buffBleed()));
+            JLabel bleedNum = new JLabel("x" + playerChar.getBleedStacks());
+            bleedNum.setFont(new Font("Arial", Font.BOLD, 12));
+            bleedNum.setForeground(new Color(180, 0, 0));
+            bleedPnl.add(bleedNum);
+            ui.playerHandPanel.add(bleedPnl);
         }
         ui.playerHandPanel.revalidate();
         ui.playerHandPanel.repaint();
@@ -2489,11 +2551,11 @@ public class Game extends JFrame {
         boolean isSaikiSix = currentPhase == Phase.SAIKI_SIX_JUDGE;
         ui.skipDefendBtn.setVisible(isPlayerDefend || (chanFourSwapMode && !chanFourSelectOpponent) || chanSevenKeepMode);
         if (chanFourSwapMode) {
-            ui.skipDefendBtn.setText("🗑 弃掉(2伤害)");
+            ui.skipDefendBtn.setText(" 弃掉(2伤害)");
         } else if (chanSevenKeepMode) {
-            ui.skipDefendBtn.setText("🗑 弃掉");
+            ui.skipDefendBtn.setText(" 弃掉");
         } else {
-            ui.skipDefendBtn.setText("⏩ 跳过");
+            ui.skipDefendBtn.setText(" 跳过");
         }
 
         ui.fiveHealBtn.setVisible(isFiveChoice || isSaikiThreeDone);
@@ -2507,15 +2569,20 @@ public class Game extends JFrame {
         }
         ui.sevenChoiceBtn.setVisible(chanSevenKeepMode || chanFourSwapMode || (isSaikiThree && chanFourSelectOpponent) || currentPhase == Phase.PLAYER_SEVEN_CHOICE || isSaikiSix);
         if (chanSevenKeepMode) {
-            ui.sevenChoiceBtn.setText("📥 加入手牌");
+            ui.sevenChoiceBtn.setText(" 加入手牌");
+            ui.sevenChoiceBtn.setIcon(GameIcons.uiTick());
         } else if (chanFourSwapMode) {
-            ui.sevenChoiceBtn.setText("🔄 确认交换");
+            ui.sevenChoiceBtn.setText(" 确认交换");
+            ui.sevenChoiceBtn.setIcon(GameIcons.uiTick());
         } else if (isSaikiThree && chanFourSelectOpponent) {
-            ui.sevenChoiceBtn.setText("✋ 确认选择");
+            ui.sevenChoiceBtn.setText(" 确认选择");
+            ui.sevenChoiceBtn.setIcon(GameIcons.uiHand());
         } else if (isSaikiSix) {
-            ui.sevenChoiceBtn.setText("✔ 确认判定");
+            ui.sevenChoiceBtn.setText(" 确认判定");
+            ui.sevenChoiceBtn.setIcon(GameIcons.uiJudge());
         } else if (currentPhase == Phase.PLAYER_SEVEN_CHOICE) {
-            ui.sevenChoiceBtn.setText("✔ 确认选择");
+            ui.sevenChoiceBtn.setText(" 确认选择");
+            ui.sevenChoiceBtn.setIcon(GameIcons.uiHand());
         }
         ui.playBtn.setEnabled(isPlayerPlay && selectedSingle >= 0 && !busy);
         ui.enterDiscardBtn.setEnabled(isPlayerPlay && !hasPlayedThisTurn && !busy);

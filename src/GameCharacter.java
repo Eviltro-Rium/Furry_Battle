@@ -22,7 +22,7 @@ public class GameCharacter {
         SAIKI_THREE_DRAW,
         SAIKI_SIX_JUDGE,
         BLAZE_FOUR_DRAW,
-        BLAZE_SEVEN_PLAY,
+
         BLAZE_DEFEND_TWO_DRAW
     }
 
@@ -58,7 +58,7 @@ public class GameCharacter {
     public int getBleedStacks() { return bleedStacks; }
 
     public void addBleed(int stacks) {
-        bleedStacks = Math.min(3, bleedStacks + stacks);
+        bleedStacks = Math.min(2, bleedStacks + stacks);
     }
 
     public void removeBleed(int stacks) {
@@ -117,6 +117,7 @@ public class GameCharacter {
         public int extraDamageIfBurn = 0;
         public boolean doubleDamageIfBurn = false;
         public int damagePerBurn = 0;
+        public double damagePerFieldBurn = 0;
         public int revealExtraDraw = 0;
         public int forceOpponentDiscard = 0;
         public boolean forceOpponentDiscardOne = false;
@@ -128,10 +129,13 @@ public class GameCharacter {
         public int addBleed = 0;
         public int passiveBleed = 0;
         public int addBleedSelf = 0;
+        public int damagePerBleed = 0;
+        public boolean healEqualsDamage = false;
         public boolean immuneDebuff = false;
         public boolean reflectDebuff = false;
         public int sharedDamage = 0;
         public int addBurnSelf = 0;
+        public boolean passiveAfterSelfBurn = false;
         public boolean redAttack = false;
 
         public boolean skipDefenseIfZero = false;
@@ -156,6 +160,7 @@ public class GameCharacter {
         public boolean immuneAll = false;
         public boolean healFromDamage = false;
         public int addBurn = 0;
+        public int addBurnSelf = 0;
         public boolean addFreeze = false;
         public boolean forceDiscardAll = false;
         public int counterFromDamage = 0;
@@ -171,6 +176,7 @@ public class GameCharacter {
         public boolean discardRevealed = false;
         public int healAllBurnPlus = 0;
         public boolean counterDmgFromAttackerBurn = false;
+        public boolean counterDmgFromFieldBurn = false;
         public List<FollowUp> followUps = new ArrayList<>();
         public String desc = "";
 

@@ -25,9 +25,9 @@ public class PurifyDialog extends JDialog {
         panel.add(title, BorderLayout.NORTH);
 
         List<Object[]> buffs = new ArrayList<>();
-        if (ch.getBurnStacks() > 0) buffs.add(new Object[]{"灼烧", "灼烧 x" + ch.getBurnStacks(), new Color(255, 100, 0)});
-        if (ch.isFrozen()) buffs.add(new Object[]{"冷冻", "冷冻", new Color(100, 180, 255)});
-        if (ch.getBleedStacks() > 0) buffs.add(new Object[]{"流血", "流血 x" + ch.getBleedStacks(), new Color(180, 0, 0)});
+        if (ch.getBurnStacks() > 0) buffs.add(new Object[]{"灼烧", "灼烧 x" + ch.getBurnStacks(), new Color(255, 100, 0), GameIcons.buffBurn()});
+        if (ch.isFrozen()) buffs.add(new Object[]{"冷冻", "冷冻", new Color(100, 180, 255), GameIcons.buffFreeze()});
+        if (ch.getBleedStacks() > 0) buffs.add(new Object[]{"流血", "流血 x" + ch.getBleedStacks(), new Color(180, 0, 0), GameIcons.buffBleed()});
 
         JPanel btnPanel = new JPanel(new GridLayout(buffs.size(), 1, 5, 5));
         btnPanel.setBackground(new Color(30, 30, 45));
@@ -39,6 +39,8 @@ public class PurifyDialog extends JDialog {
             btn.setBackground(new Color(50, 50, 70));
             btn.setForeground((Color) buff[2]);
             btn.setFocusPainted(false);
+            btn.setIcon((ImageIcon) buff[3]);
+            btn.setHorizontalTextPosition(SwingConstants.RIGHT);
             btn.addActionListener(e -> {
                 result = (String) buff[0];
                 dispose();
@@ -60,6 +62,8 @@ public class PurifyDialog extends JDialog {
         cancelBtn.setBackground(new Color(60, 40, 40));
         cancelBtn.setForeground(Color.WHITE);
         cancelBtn.setFocusPainted(false);
+        cancelBtn.setIcon(GameIcons.uiSkip());
+        cancelBtn.setHorizontalTextPosition(SwingConstants.RIGHT);
         cancelBtn.addActionListener(e -> dispose());
         JPanel south = new JPanel(new FlowLayout(FlowLayout.CENTER));
         south.setBackground(new Color(30, 30, 45));

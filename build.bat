@@ -16,12 +16,19 @@ mkdir "%DIST_DIR%"
 
 rem 2. 编译
 echo [1/4] 编译中...
-javac -sourcepath src -d "%OUT_DIR%" src/Card.java src/CardDeck.java src/GameCharacter.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/Characters/BlazeCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/AI/BlazeAI.java src/GameUI.java src/GameAnim.java src/EffectEngine.java src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java
+javac -sourcepath src -d "%OUT_DIR%" src/Card.java src/CardDeck.java src/GameCharacter.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/Characters/BlazeCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/AI/BlazeAI.java src/GameIcons.java src/GameUI.java src/GameAnim.java src/EffectEngine.java src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java
 if errorlevel 1 (
     echo 编译失败！
     pause
     exit /b 1
 )
+
+mkdir "%OUT_DIR%\icons\card_icons" 2>nul
+mkdir "%OUT_DIR%\icons\buff_icons" 2>nul
+mkdir "%OUT_DIR%\icons\ui_icons" 2>nul
+copy src\icons\card_icons\*.png "%OUT_DIR%\icons\card_icons\" >nul
+copy src\icons\buff_icons\*.png "%OUT_DIR%\icons\buff_icons\" >nul
+copy src\icons\ui_icons\*.png "%OUT_DIR%\icons\ui_icons\" >nul
 
 rem 3. 打包JAR
 echo [2/4] 打包JAR...

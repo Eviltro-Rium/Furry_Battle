@@ -58,7 +58,10 @@ public class SaikiCharacter extends GameCharacter {
                 r.desc = "6️⃣ 判定数字牌";
                 break;
             case 7:
-                r.desc = "7️⃣ 2×流血伤害+恢复";
+                r.damage = 2;
+                r.damagePerBleed = 2;
+                r.healEqualsDamage = true;
+                r.desc = "7️⃣ 2+2×🩸🗡️+恢复等量❤️";
                 break;
             case 0:
                 r.addBleed = 1;
@@ -100,8 +103,8 @@ public class SaikiCharacter extends GameCharacter {
 
         switch (v) {
             case 1:
-                r.blocked = Math.min(4, incomingDamage);
-                r.desc = "1️⃣ 防御至多4点";
+                r.blocked = Math.min(3, incomingDamage);
+                r.desc = "1️⃣ 防御至多3点";
                 break;
             case 2:
                 r.counterDmg = 3;

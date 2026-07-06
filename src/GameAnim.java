@@ -2,7 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 public class GameAnim {
 
@@ -10,6 +12,10 @@ public class GameAnim {
     private static final Map<String, Long> floatTimeMap = new HashMap<>();
     private static final int FLOAT_ROW_HEIGHT = 32;
     private static final long FLOAT_RESET_MS = 800;
+
+    private static final Queue<Runnable> floatQueue = new LinkedList<>();
+    private static boolean floatPlaying = false;
+    private static final int FLOAT_DURATION_MS = 900;
 
     private static int getFloatOffset(String key) {
         long now = System.currentTimeMillis();
@@ -26,6 +32,57 @@ public class GameAnim {
     static void resetFloatOffsets() {
         floatOffsetMap.clear();
         floatTimeMap.clear();
+    }
+
+    static void playFloatingText(Game game, String text, Color color, Point location) {
+        floatQueue.add(() -> doPlayFloatingText(game, text, color, location));
+        tryNextFloat();
+    }
+
+    private static void tryNextFloat() {
+        if (floatPlaying || floatQueue.isEmpty()) return;
+        floatPlaying = true;
+        Runnable r = floatQueue.poll();
+        r.run();
+    }
+
+    private static void onFloatDone() {
+        floatPlaying = false;
+        tryNextFloat();
+    }
+
+    private static void doPlayFloatingText(Game game, String text, Color color, Point location) {
+        String key = location.x / 80 + "_" + location.y / 60;
+        int row = getFloatOffset(key);
+        int offsetY = -row * FLOAT_ROW_HEIGHT;
+
+        JPanel glassPane = (JPanel) game.getGlassPane();
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 28));
+        label.setForeground(color);
+        label.setSize(220, 40);
+        int startY = location.y + offsetY;
+        label.setLocation(location.x - 110, startY);
+        glassPane.add(label);
+        glassPane.setComponentZOrder(label, 0);
+
+        int[] tick = {0};
+        int frames = 30;
+        javax.swing.Timer t = new javax.swing.Timer(30, e -> {
+            tick[0]++;
+            double pct = (double) tick[0] / frames;
+            label.setLocation(label.getX(), startY - (int) (60 * pct));
+            int alpha = (int) (255 * (1.0 - pct * pct));
+            label.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, alpha)));
+            glassPane.repaint(label.getBounds());
+            if (tick[0] >= frames) {
+                ((javax.swing.Timer) e.getSource()).stop();
+                glassPane.remove(label);
+                glassPane.repaint();
+                onFloatDone();
+            }
+        });
+        t.start();
     }
 
     // ── Pre-rendered card images (reused) ──
@@ -59,18 +116,35 @@ public class GameAnim {
         g2.setPaint(shine);
         g2.fillRoundRect(4, 4, w - 10, h / 2, 14, 14);
 
-        g2.setFont(new Font("Arial", Font.BOLD, w > 90 ? 56 : 40));
-        g2.setColor(Color.WHITE);
-        String text;
+        ImageIcon icon = null;
+        String text = null;
         if (card.isBlack()) {
-            text = "✦";
+            icon = GameIcons.cardBlack();
+        } else if (card.isSuperPurify()) {
+            icon = GameIcons.cardSuperPurify();
+        } else if (card.isPurify()) {
+            icon = GameIcons.cardPurify();
+        } else if (card.isPotion()) {
+            icon = GameIcons.cardPotion();
+        } else if (card.isDrawThree()) {
+            icon = GameIcons.cardDrawThree();
+        } else if (card.isSwapHand()) {
+            icon = GameIcons.cardSwapHand();
         } else {
             text = String.valueOf(card.getValue());
         }
-        FontMetrics fm = g2.getFontMetrics();
-        int tx = (w - fm.stringWidth(text)) / 2;
-        int ty = (h + fm.getAscent() - fm.getDescent()) / 2;
-        g2.drawString(text, tx, ty);
+
+        if (icon != null) {
+            int iw = icon.getIconWidth(), ih = icon.getIconHeight();
+            icon.paintIcon(null, g2, (w - iw) / 2, (h - ih) / 2);
+        } else if (text != null) {
+            g2.setFont(new Font("Arial", Font.BOLD, w > 90 ? 56 : 40));
+            g2.setColor(Color.WHITE);
+            FontMetrics fm = g2.getFontMetrics();
+            int tx = (w - fm.stringWidth(text)) / 2;
+            int ty = (h + fm.getAscent() - fm.getDescent()) / 2;
+            g2.drawString(text, tx, ty);
+        }
 
         g2.dispose();
         return img;
@@ -90,26 +164,31 @@ public class GameAnim {
         p.setOpaque(true);
 
         JLabel lbl = new JLabel("", SwingConstants.CENTER);
+        ImageIcon icon = null;
+        String text = null;
+        int iconSize = w > 90 ? 44 : 30;
         if (card.isBlack()) {
-            lbl.setText("✦");
-            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
+            icon = GameIcons.scaled("/icons/card_icons/color_palette.png", iconSize, iconSize);
         } else if (card.isSuperPurify()) {
-            lbl.setText("✨✨");
-            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 36 : 24));
+            icon = GameIcons.scaled("/icons/card_icons/super_purify.png", iconSize, iconSize);
         } else if (card.isPurify()) {
-            lbl.setText("✨");
-            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
+            icon = GameIcons.scaled("/icons/card_icons/purify.png", iconSize, iconSize);
         } else if (card.isPotion()) {
-            lbl.setText("🧪");
-            lbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, w > 90 ? 44 : 30));
+            icon = GameIcons.scaled("/icons/card_icons/potion.png", iconSize, iconSize);
         } else if (card.isDrawThree()) {
-            lbl.setText("+3");
-            lbl.setFont(new Font("Arial", Font.BOLD, w > 90 ? 44 : 30));
-            lbl.setForeground(new Color(60, 60, 80));
+            text = "+3";
+        } else if (card.isSwapHand()) {
+            icon = GameIcons.scaled("/icons/card_icons/swap_cards.png", iconSize, iconSize);
         } else {
-            lbl.setText(String.valueOf(card.getValue()));
-            lbl.setFont(new Font("Arial", Font.BOLD, w > 90 ? 56 : 40));
-            lbl.setForeground(Color.WHITE);
+            text = String.valueOf(card.getValue());
+        }
+
+        if (icon != null) {
+            lbl.setIcon(icon);
+        } else if (text != null) {
+            lbl.setText(text);
+            lbl.setFont(new Font("Arial", Font.BOLD, w > 90 ? 44 : 30));
+            lbl.setForeground(card.isDrawThree() ? new Color(60, 60, 80) : Color.WHITE);
         }
         lbl.setBounds(0, 0, w, h);
         p.add(lbl);
@@ -258,34 +337,6 @@ public class GameAnim {
         spawn.start();
     }
 
-    static void playFloatingText(Game game, String text, Color color, Point location) {
-        String key = location.x / 80 + "_" + location.y / 60;
-        int row = getFloatOffset(key);
-        int offsetY = -row * FLOAT_ROW_HEIGHT;
-
-        JPanel glassPane = (JPanel) game.getGlassPane();
-        JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 28));
-        label.setForeground(color);
-        label.setSize(220, 40);
-        int startY = location.y + offsetY;
-        label.setLocation(location.x - 110, startY);
-        glassPane.add(label);
-        glassPane.setComponentZOrder(label, 0);
-
-        int[] tick = {0};
-        int frames = 30;
-        javax.swing.Timer t = new javax.swing.Timer(30, e -> {
-            tick[0]++;
-            double pct = (double) tick[0] / frames;
-            label.setLocation(label.getX(), startY - (int) (60 * pct));
-            int alpha = (int) (255 * (1.0 - pct * pct));
-            label.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), Math.max(0, alpha)));
-            glassPane.repaint(label.getBounds());
-            if (tick[0] >= frames) { ((javax.swing.Timer) e.getSource()).stop(); glassPane.remove(label); glassPane.repaint(); }
-        });
-        t.start();
-    }
 
     // ── Helpers ──
 

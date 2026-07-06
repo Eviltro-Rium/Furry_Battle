@@ -43,7 +43,7 @@ public class CardDeck {
             cards.add(new Card(-1, Card.CardColor.WHITE, false, false, false, false, true));
         }
         for (int i = 0; i < 2; i++) {
-            cards.add(new Card(-1, Card.CardColor.WHITE, false, false, false, false, true, true));
+            cards.add(new Card(-1, Card.CardColor.WHITE, false, false, false, false, false, true));
         }
     }
 
