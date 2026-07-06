@@ -120,9 +120,9 @@ public class Card {
             String chosen = chosenColor != null ? colorName(chosenColor) : "";
             String suffix;
             if (drawThree) suffix = "+3";
-            else if (superPurify) suffix = "✨✨";
-            else if (purify) suffix = "✨";
-            else if (swapHand) suffix = "🔄";
+            else if (superPurify) suffix = "超净";
+            else if (purify) suffix = "净化";
+            else if (swapHand) suffix = "交换";
             else suffix = String.valueOf(value);
             return "[白" + suffix + chosen + "]";
         }

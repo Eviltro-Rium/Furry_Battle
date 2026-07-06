@@ -87,14 +87,14 @@ public class BlazeHandler extends CharacterHandler {
             selfHand.add(drawn);
             opponent.addBurn(1);
             self.addBurn(1);
-            game.showAttackDesc("4️⃣ 抽到" + drawn + " → 0️⃣加入手牌，双方🔥1，跳过防御");
+            game.showAttackDesc("4️⃣ 抽到" + drawn + " → 0️⃣加入手牌，双方灼烧1，跳过防御");
             game.pendingAttack = new GameCharacter.AttackResult();
             game.pendingAttack.skipDefense = true;
             game.pendingAttack.damage = 0;
-            game.pendingAttack.desc = "4️⃣ 抽到0️⃣ → 加入手牌+双方🔥1";
+            game.pendingAttack.desc = "4️⃣ 抽到0️⃣ → 加入手牌+双方灼烧1";
             GameAnim.playFloatingText(game, "抽" + drawn, new Color(100, 180, 255),
                 new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
-            GameAnim.playFloatingText(game, "🔥+1", new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "灼烧+1", new Color(255, 140, 0),
                 opponent == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -141,14 +141,14 @@ public class BlazeHandler extends CharacterHandler {
             game.playerHand.add(drawn);
             game.aiChar.addBurn(1);
             game.playerChar.addBurn(1);
-            game.showAttackDesc("4️⃣ 抽到" + drawn + " → 0️⃣加入手牌，双方🔥1，跳过防御");
+            game.showAttackDesc("4️⃣ 抽到" + drawn + " → 0️⃣加入手牌，双方灼烧1，跳过防御");
             game.pendingAttack = new GameCharacter.AttackResult();
             game.pendingAttack.skipDefense = true;
             game.pendingAttack.damage = 0;
-            game.pendingAttack.desc = "4️⃣ 抽到0️⃣ → 加入手牌+双方🔥1";
+            game.pendingAttack.desc = "4️⃣ 抽到0️⃣ → 加入手牌+双方灼烧1";
             GameAnim.playFloatingText(game, "抽" + drawn, new Color(100, 180, 255),
                 new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
-            GameAnim.playFloatingText(game, "🔥+1", new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "灼烧+1", new Color(255, 140, 0),
                 new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
             game.currentPhase = Game.Phase.PLAYER_PLAY;
             game.clearAIZones();
@@ -193,7 +193,7 @@ public class BlazeHandler extends CharacterHandler {
         }
 
         String who = self == game.playerChar ? "你" : "AI";
-        game.showDefendDesc("2️⃣ " + who + "抽到" + drawn + " → 反击" + counterDmg + "点" + (isItem ? " +对手🔥1" : ""));
+        game.showDefendDesc("2️⃣ " + who + "抽到" + drawn + " → 反击" + counterDmg + "点" + (isItem ? " +对手灼烧1" : ""));
         GameAnim.playFloatingText(game, drawn + "→" + counterDmg, new Color(255, 80, 30),
             self == game.playerChar
                 ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 30)

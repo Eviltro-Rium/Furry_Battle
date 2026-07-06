@@ -6,7 +6,7 @@ public class RyanCharacter extends GameCharacter {
     }
 
     public RyanCharacter(boolean isAI) {
-        super(isAI ? "🐼 AI Ryan" : "🐼 Ryan", 70);
+        super(isAI ? "AI Ryan" : "Ryan", 70);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class RyanCharacter extends GameCharacter {
                 r.damage = (int) Math.ceil(handValueSum / 2.0);
                 r.mayDiscardAny = true;
                 r.recalcDamageAfterDraw = true;
-                r.desc = "7️⃣ 抽1张牌，造成手牌数字之和1/2🗡️（向上取整）";
+                r.desc = "7️⃣ 抽1张牌，造成手牌数字之和1/2伤（向上取整）";
                 break;
             case 0:
                 r.selfHeal = 4;
@@ -80,7 +80,7 @@ public class RyanCharacter extends GameCharacter {
             r.selfHeal = 1;
             r.damage = 4;
             r.drawCount = -1;
-            r.desc = "判定🟢/⚪/⚫ → 恢复1❤️ + 造成4🗡️，加入手牌";
+            r.desc = "判定🟢/⚪/⚫ → 恢复1命 + 造成4伤，加入手牌";
         } else {
             r.drawCount = -1;
             r.desc = "判定其他牌 → 加入手牌";

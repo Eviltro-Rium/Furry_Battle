@@ -61,7 +61,7 @@ public class SaikiCharacter extends GameCharacter {
                 r.damage = 2;
                 r.damagePerBleed = 2;
                 r.healEqualsDamage = true;
-                r.desc = "7️⃣ 2+2×🩸🗡️+恢复等量❤️";
+                r.desc = "7️⃣ 2+2×血伤+恢复等量命";
                 break;
             case 0:
                 r.addBleed = 1;
@@ -73,7 +73,7 @@ public class SaikiCharacter extends GameCharacter {
         if (card.getEffectiveColor() == Card.CardColor.YELLOW) {
             r.passiveBleed = 1;
             if (v != 4 && v != 0) {
-                r.desc += " (🟡被动+1流血)";
+                r.desc += " (黄被动+1流血)";
             }
         }
 

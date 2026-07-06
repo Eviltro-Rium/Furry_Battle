@@ -6,7 +6,7 @@ public class ChanCharacter extends GameCharacter {
     }
 
     public ChanCharacter(boolean isAI) {
-        super(isAI ? "🔵 AI Chan" : "🔵 Chan", 80);
+        super(isAI ? "AI Chan" : "Chan", 80);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class ChanCharacter extends GameCharacter {
                 r.drawCount = 2;
                 r.skipDefense = true;
                 r.selfDamage = 2;
-                r.desc = "5️⃣ 消耗2❤️ + 查看牌库顶5张排序后放回 + 抽2张（跳过防御）";
+                r.desc = "5️⃣ 消耗2命 + 查看牌库顶5张排序后放回 + 抽2张（跳过防御）";
                 break;
             case 6:
                 r.damage = 5;

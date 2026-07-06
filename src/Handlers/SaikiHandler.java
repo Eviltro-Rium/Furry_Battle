@@ -170,7 +170,7 @@ public class SaikiHandler extends CharacterHandler {
             if (isYellow) {
                 opponent.addBleed(1);
                 desc += "+1层流血";
-                GameAnim.playFloatingText(game, "🩸+1", new Color(180, 0, 0),
+                GameAnim.playFloatingText(game, "血+1", new Color(180, 0, 0),
                     new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60));
             }
             game.pendingAttack = new GameCharacter.AttackResult();
@@ -232,7 +232,7 @@ public class SaikiHandler extends CharacterHandler {
             if (isYellow) {
                 game.aiChar.addBleed(1);
                 desc += "+1层流血";
-                GameAnim.playFloatingText(game, "🩸+1", new Color(180, 0, 0),
+                GameAnim.playFloatingText(game, "血+1", new Color(180, 0, 0),
                     new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
             }
             game.pendingAttack = new GameCharacter.AttackResult();
@@ -268,7 +268,7 @@ public class SaikiHandler extends CharacterHandler {
         int healAmt = oppBleed + selfBleed;
 
         opponent.addBleed(1);
-        GameAnim.playFloatingText(game, "🩸+1", new Color(180, 0, 0),
+        GameAnim.playFloatingText(game, "血+1", new Color(180, 0, 0),
             opponent == game.playerChar
                 ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                 : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));

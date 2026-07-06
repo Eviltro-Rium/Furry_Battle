@@ -4,11 +4,11 @@ import java.awt.*;
 public class CharacterSelectPanel extends JPanel {
 
     private static final String[][] CHARACTERS = {
-        {"🐼 Ryan", "70", "被动：回合开始恢复1❤️"},
-        {"🐻‍❄️ Leon", "100", "被动：免疫灼烧"},
-        {"🐼 Chan", "80", "被动：回合开始抽1🃏"},
-        {"🐺 Saiki", "80", "被动：打出黄牌+1流血"},
-        {"🐶 Blaze", "75", "被动：灼烧时攻击+1🗡️"}
+        {"Ryan", "70", "被动：回合开始恢复1"},
+        {"Leon", "100", "被动：免疫灼烧"},
+        {"Chan", "80", "被动：回合开始抽1"},
+        {"Saiki", "80", "被动：打出黄牌+1流血"},
+        {"Blaze", "85", "被动：灼烧时攻击+1"}
     };
 
     private int playerChoice = -1;

@@ -306,7 +306,7 @@ public class RyanHandler extends CharacterHandler {
         game.discardPile.addLast(chosen);
         game.pendingFiveChoice = false;
         game.forceOpponentDiscardOne = false;
-        game.showAttackDesc("⚔7️⃣ 弃掉AI的" + chosen);
+        game.showAttackDesc("7 弃掉AI的" + chosen);
         GameAnim.playFloatingText(game, "弃" + chosen, new Color(255, 60, 60),
             new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
         if (game.pendingAttack != null && game.pendingAttack.damage > 0) {

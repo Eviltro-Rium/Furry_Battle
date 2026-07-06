@@ -34,7 +34,7 @@ public class ChanHandler extends CharacterHandler {
 
                 if (revealResult.addBurn > 0) {
                     opponent.addBurn(revealResult.addBurn);
-                    GameAnim.playFloatingText(game, "🔥+" + revealResult.addBurn, new Color(255, 140, 0),
+                    GameAnim.playFloatingText(game, "灼烧+" + revealResult.addBurn, new Color(255, 140, 0),
                         opponent == game.playerChar
                             ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                             : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -488,7 +488,7 @@ public class ChanHandler extends CharacterHandler {
 
                 if (isUnblockable) {
                     game.pendingAttack.skipDefense = true;
-                    game.showAttackDesc("6️⃣ 判定" + revealed + " → 🔵/⚪/⚫跳过防御");
+                    game.showAttackDesc("6️⃣ 判定" + revealed + " → 蓝/白/黑跳过防御");
                     game.showDefendDesc("跳过防御");
                     if (self == game.playerChar) {
                         Timer skipTimer = new Timer(Game.DELAY_SKIP, e2 -> {

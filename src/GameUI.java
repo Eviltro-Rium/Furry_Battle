@@ -160,7 +160,7 @@ public class GameUI {
         aiAttackPanel = new JPanel();
         aiAttackPanel.setLayout(new BorderLayout(4, 2));
         aiAttackPanel.setBackground(new Color(255, 240, 230));
-        aiAttackPanel.setBorder(makeGlowBorder("⚔ 出牌区", new Color(220, 80, 60)));
+        aiAttackPanel.setBorder(makeGlowBorder("出牌区", new Color(220, 80, 60)));
         aiAttackPanel.setPreferredSize(new Dimension(0, 180));
 
         JPanel atkZone = new JPanel(new BorderLayout(2, 2));
@@ -287,7 +287,7 @@ public class GameUI {
         endTurnBtn      = makeBtn(" 结束回合",new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
         defendBtn       = makeBtn(" 防御",    new Color(230, 240, 255), new Color(200, 225, 255), new Color(0, 80, 180));
         skipDefendBtn   = makeBtn(" 跳过",  new Color(240, 240, 240), new Color(225, 225, 225), new Color(120, 110, 100));
-        fiveHealBtn     = makeBtn("❤ 恢复", new Color(230, 250, 235), new Color(200, 240, 210), new Color(0, 140, 60));
+        fiveHealBtn     = makeBtn("恢复", new Color(230, 250, 235), new Color(200, 240, 210), new Color(0, 140, 60));
         fiveDamageBtn   = makeBtn(" 1.5倍",new Color(255, 235, 235), new Color(255, 215, 215), new Color(180, 30, 30));
         sevenChoiceBtn  = makeBtn(" 指定弃牌", new Color(255, 242, 225), new Color(255, 228, 195), new Color(200, 90, 0));
 
@@ -424,7 +424,7 @@ public class GameUI {
     static javax.swing.border.TitledBorder makeAttackerBorder(String title) {
         return BorderFactory.createTitledBorder(
                 new GlowBorder(new Color(255, 30, 30), 3, true),
-                title + " ⚡进攻方",
+                title + " 进攻方",
                 javax.swing.border.TitledBorder.LEFT,
                 javax.swing.border.TitledBorder.TOP,
                 new Font("微软雅黑", Font.BOLD, 14),
@@ -619,59 +619,18 @@ public class GameUI {
 
     // ── Color chooser (custom styled) ──
     static Card.CardColor showColorChooser(JFrame parent) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 12));
-        panel.setBackground(new Color(255, 245, 230));
-        JButton[] btns = new JButton[4];
-        String[] labels = {"🔴 红", "🟡 黄", "🔵 蓝", "🟢 绿"};
-        Card.CardColor[] colors = {Card.CardColor.RED, Card.CardColor.YELLOW, Card.CardColor.BLUE, Card.CardColor.GREEN};
-        Color[] btnColors = {CARD_RED, CARD_YELLOW, CARD_BLUE, CARD_GREEN};
-        final Card.CardColor[] result = {null};
-
-        for (int i = 0; i < 4; i++) {
-            final int idx = i;
-            JButton b = new JButton(labels[i]) {
-                @Override protected void paintComponent(Graphics g) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    GradientPaint gp = new GradientPaint(0, 0, btnColors[idx], 0, getHeight(), btnColors[idx].darker().darker());
-                    g2.setPaint(gp);
-                    g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-                    g2.setColor(new Color(255, 255, 255, 80));
-                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
-                    g2.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            b.setFont(new Font("微软雅黑", Font.BOLD, 14));
-            b.setForeground(Color.WHITE);
-            b.setFocusPainted(false);
-            b.setBorderPainted(false);
-            b.setContentAreaFilled(false);
-            b.setPreferredSize(new Dimension(90, 44));
-            b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            final Card.CardColor cc = colors[i];
-            b.addActionListener(e -> {
-                result[0] = cc;
-                Window w = SwingUtilities.getWindowAncestor(panel);
-                if (w != null) w.dispose();
-            });
-            panel.add(b);
-            btns[i] = b;
-        }
-
-        JOptionPane pane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-        JDialog dialog = pane.createDialog(parent, "选择黑牌颜色");
+        ColorChooserDialog dialog = new ColorChooserDialog(parent);
         dialog.setVisible(true);
-        return result[0];
+        return dialog.getResult();
     }
 
     static String colorSymbol(Card.CardColor color) {
         switch (color) {
-            case RED:    return "🔴";
-            case YELLOW: return "🟡";
-            case BLUE:   return "🔵";
-            case GREEN:  return "🟢";
-            case WHITE:  return "⚪";
+            case RED:    return "红";
+            case YELLOW: return "黄";
+            case BLUE:   return "蓝";
+            case GREEN:  return "绿";
+            case WHITE:  return "白";
             default:     return "?";
         }
     }

@@ -402,7 +402,7 @@ public class Game extends JFrame {
              playerChar.heal(5);
              GameAnim.playFlyAnimation(this, card, from, to, () -> {
                  showAIAttackCard(card);
-                 showAttackDesc("🧪 恢复5点生命，可继续出牌");
+                 showAttackDesc("药水 恢复5点生命，可继续出牌");
                  GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
                      new Point(getWidth() / 2, getHeight() * 3 / 4));
                 currentPhase = Phase.PLAYER_PLAY;
@@ -439,8 +439,8 @@ public class Game extends JFrame {
                 playerHand.addAll(ai.getHand());
                 ai.getHand().clear();
                 ai.getHand().addAll(temp);
-                showAttackDesc("🔄 交换双方手牌，可继续出牌");
-                GameAnim.playFloatingText(this, "🔄交换", new Color(100, 80, 200),
+                showAttackDesc("交换 交换双方手牌，可继续出牌");
+                GameAnim.playFloatingText(this, "交换", new Color(100, 80, 200),
                     new Point(getWidth() / 2, getHeight() / 2 - 30));
                 currentPhase = Phase.PLAYER_PLAY;
                 updateDisplay();
@@ -758,7 +758,7 @@ public class Game extends JFrame {
 
         boolean isBlueAttack = top.getEffectiveColor() == Card.CardColor.BLUE;
         if (aiChar.isFrozen() && isBlueAttack) {
-            showDefendDesc("❄️冷冻 → 无法防御蓝色攻击");
+            showDefendDesc("冷冻 → 无法防御蓝色攻击");
             finishAIDefend();
             return;
         }
@@ -1040,6 +1040,34 @@ public class Game extends JFrame {
                 return;
             }
 
+            if (card.isSwapHand()) {
+                card.setChosenColor(top.getEffectiveColor());
+
+                int cardIdx = selectedSingle;
+                Point from = GameAnim.getPlayerHandCardCenter(ui, this, cardIdx);
+                Point to = GameAnim.getAttackPanelCenter(ui, this);
+
+                playerHand.remove(cardIdx);
+                discardPile.addFirst(card);
+                selectedSingle = -1;
+                pendingDefendCard = null;
+                hasPlayedBlackDefend = true;
+
+                List<Card> tmp = new ArrayList<>(playerHand);
+                playerHand.clear();
+                playerHand.addAll(ai.getHand());
+                ai.getHand().clear();
+                ai.getHand().addAll(tmp);
+
+                GameAnim.playFlyAnimation(this, card, from, to, () -> {
+                    GameAnim.playFloatingText(this, "交换", new Color(100, 80, 200),
+                        new Point(getWidth() / 2, getHeight() / 2));
+                    busy = false;
+                    updateDisplay();
+                });
+                return;
+            }
+
             if (!canDefend(card, top)) {
                 busy = false;
                 showMessage("该牌无法防御！需数字≤3且颜色匹配" + colorName(top.getEffectiveColor()));
@@ -1206,6 +1234,35 @@ public class Game extends JFrame {
             return;
         }
 
+        // 出交换牌 → 交换双方手牌+搭桥，留在防御阶段
+        if (card.isSwapHand()) {
+            card.setChosenColor(top.getEffectiveColor());
+
+            int cardIdx = selectedSingle;
+            Point from = GameAnim.getPlayerHandCardCenter(ui, this, cardIdx);
+            Point to = GameAnim.getAttackPanelCenter(ui, this);
+
+            playerHand.remove(cardIdx);
+            discardPile.addFirst(card);
+            selectedSingle = -1;
+            pendingDefendCard = null;
+            hasPlayedBlackDefend = true;
+
+            List<Card> tmp = new ArrayList<>(playerHand);
+            playerHand.clear();
+            playerHand.addAll(ai.getHand());
+            ai.getHand().clear();
+            ai.getHand().addAll(tmp);
+
+            GameAnim.playFlyAnimation(this, card, from, to, () -> {
+                GameAnim.playFloatingText(this, "交换", new Color(100, 80, 200),
+                    new Point(getWidth() / 2, getHeight() / 2));
+                busy = false;
+                updateDisplay();
+            });
+            return;
+        }
+
         // 出白牌 → 自动指定为弃牌库顶颜色
         if (card.isWhite()) {
             card.setChosenColor(top.getEffectiveColor());
@@ -1328,7 +1385,7 @@ public class Game extends JFrame {
     protected void enterPlayerDefend() {
         boolean isBlueAtk = !discardPile.isEmpty() && discardPile.getFirst().getEffectiveColor() == Card.CardColor.BLUE;
         if (playerChar.isFrozen() && isBlueAtk) {
-            showDefendDesc("❄️冷冻 → 无法防御蓝色攻击");
+            showDefendDesc("冷冻 → 无法防御蓝色攻击");
             Timer frozenTimer = new Timer(DELAY_EFFECT, e -> {
                 ((Timer)e.getSource()).stop();
                 finishPlayerDefend();
@@ -1392,7 +1449,7 @@ public class Game extends JFrame {
                     aiChar.heal(5);
                     GameAnim.playFlyAnimation(this, toPlay, from, to, () -> {
                         showAIAttackCard(toPlay);
-                        showAttackDesc("🧪 AI恢复5点生命，继续出牌");
+                        showAttackDesc("药水 AI恢复5点生命，继续出牌");
                         GameAnim.playFloatingText(this, "+5", new Color(60, 220, 60),
                             new Point(getWidth() / 2, getHeight() / 3));
                         updateDisplay();
@@ -1426,8 +1483,8 @@ public class Game extends JFrame {
                         playerHand.addAll(ai.getHand());
                         ai.getHand().clear();
                         ai.getHand().addAll(temp);
-                        showAttackDesc("🔄 AI交换双方手牌，继续出牌");
-                        GameAnim.playFloatingText(this, "🔄交换", new Color(100, 80, 200),
+                        showAttackDesc("交换 AI交换双方手牌，继续出牌");
+                        GameAnim.playFloatingText(this, "交换", new Color(100, 80, 200),
                             new Point(getWidth() / 2, getHeight() / 2 - 30));
                         updateDisplay();
                         resumeAITurn();
@@ -1588,7 +1645,7 @@ public class Game extends JFrame {
                 Point loc = target == playerChar
                     ? new Point(getWidth() / 2, getHeight() * 3 / 4)
                     : new Point(getWidth() / 2, getHeight() / 3);
-                GameAnim.playFloatingText(this, "🔥-" + burnDmg, new Color(255, 100, 0), loc);
+                GameAnim.playFloatingText(this, "灼烧-" + burnDmg, new Color(255, 100, 0), loc);
             }
             target.removeBurn(1);
         }
@@ -1613,7 +1670,7 @@ public class Game extends JFrame {
     protected void applyPurifyEffect(GameCharacter ch, boolean isPlayer) {
         if (isPlayer) {
             if (!ch.hasDebuff()) {
-                showAttackDesc("✨ 无buff可净化，继续出牌");
+                showAttackDesc("净化 无buff可净化，继续出牌");
                 return;
             }
             PurifyDialog dialog = new PurifyDialog(this, ch);
@@ -1622,26 +1679,26 @@ public class Game extends JFrame {
             if (choice != null) {
                 if (choice.contains("灼烧")) {
                     ch.removeBurn(1);
-                    GameAnim.playFloatingText(this, "🔥-1", new Color(255, 140, 0),
+                    GameAnim.playFloatingText(this, "灼烧-1", new Color(255, 140, 0),
                         new Point(getWidth() / 2, getHeight() * 3 / 4 - 60));
-                    showAttackDesc("✨ 净化1层灼烧，继续出牌");
+                    showAttackDesc("净化 净化1层灼烧，继续出牌");
                 } else if (choice.contains("冷冻")) {
                     ch.setFrozen(false);
-                    GameAnim.playFloatingText(this, "❄️解除", new Color(100, 180, 255),
+                    GameAnim.playFloatingText(this, "解冻", new Color(100, 180, 255),
                         new Point(getWidth() / 2, getHeight() * 3 / 4 - 60));
-                    showAttackDesc("✨ 解除冷冻，继续出牌");
+                    showAttackDesc("净化 解除冷冻，继续出牌");
                 } else if (choice.contains("流血")) {
                     ch.removeBleed(1);
-                    GameAnim.playFloatingText(this, "🩸-1", new Color(180, 0, 0),
+                    GameAnim.playFloatingText(this, "血-1", new Color(180, 0, 0),
                         new Point(getWidth() / 2, getHeight() * 3 / 4 - 60));
-                    showAttackDesc("✨ 净化1层流血，继续出牌");
+                    showAttackDesc("净化 净化1层流血，继续出牌");
                 }
             } else {
-                showAttackDesc("✨ 取消净化，继续出牌");
+                showAttackDesc("净化 取消净化，继续出牌");
             }
         } else {
             if (!ch.hasDebuff()) {
-                showAttackDesc("✨ AI无buff可净化，继续出牌");
+                showAttackDesc("净化 AI无buff可净化，继续出牌");
                 return;
             }
             java.util.List<String> debuffs = new java.util.ArrayList<>();
@@ -1651,26 +1708,26 @@ public class Game extends JFrame {
             String chosen = debuffs.get((int)(Math.random() * debuffs.size()));
             if (chosen.equals("灼烧")) {
                 ch.removeBurn(1);
-                GameAnim.playFloatingText(this, "🔥-1", new Color(255, 140, 0),
+                GameAnim.playFloatingText(this, "灼烧-1", new Color(255, 140, 0),
                     new Point(getWidth() / 2, getHeight() / 3 - 60));
-                showAttackDesc("✨ AI净化1层灼烧，继续出牌");
+                showAttackDesc("净化 AI净化1层灼烧，继续出牌");
             } else if (chosen.equals("冷冻")) {
                 ch.setFrozen(false);
-                GameAnim.playFloatingText(this, "❄️解除", new Color(100, 180, 255),
+                GameAnim.playFloatingText(this, "解冻", new Color(100, 180, 255),
                     new Point(getWidth() / 2, getHeight() / 3 - 60));
-                showAttackDesc("✨ AI解除冷冻，继续出牌");
+                showAttackDesc("净化 AI解除冷冻，继续出牌");
             } else if (chosen.equals("流血")) {
                 ch.removeBleed(1);
-                GameAnim.playFloatingText(this, "🩸-1", new Color(180, 0, 0),
+                GameAnim.playFloatingText(this, "血-1", new Color(180, 0, 0),
                     new Point(getWidth() / 2, getHeight() / 3 - 60));
-                showAttackDesc("✨ AI净化1层流血，继续出牌");
+                showAttackDesc("净化 AI净化1层流血，继续出牌");
             }
         }
     }
 
     protected void applySuperPurifyEffect(GameCharacter ch, boolean isPlayer) {
         if (!ch.hasDebuff()) {
-            showAttackDesc(isPlayer ? "✨✨ 无buff可净化，继续出牌" : "✨✨ AI无buff可净化，继续出牌");
+            showAttackDesc(isPlayer ? "超净 无buff可净化，继续出牌" : "超净 AI无buff可净化，继续出牌");
             return;
         }
         ch.clearAllDebuffs();
@@ -1678,7 +1735,7 @@ public class Game extends JFrame {
             ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
             : new Point(getWidth() / 2, getHeight() / 3 - 60);
         GameAnim.playFloatingText(this, "全部净化", new Color(200, 180, 255), loc);
-        showAttackDesc(isPlayer ? "✨✨ 清除所有buff，继续出牌" : "✨✨ AI清除所有buff，继续出牌");
+        showAttackDesc(isPlayer ? "超净 清除所有buff，继续出牌" : "超净 AI清除所有buff，继续出牌");
     }
 
     protected void finishAITurn() {
@@ -1810,7 +1867,7 @@ public class Game extends JFrame {
                         if (c.isNumberCard()) newSum += c.getValue();
                     }
                     pendingAttack.damage = (int) Math.ceil(newSum / 2.0);
-                    showAttackDesc("⚔7️⃣ 抽牌后手牌之和" + newSum + "，造成" + pendingAttack.damage + "点伤害");
+                    showAttackDesc("7 抽牌后手牌之和" + newSum + "，造成" + pendingAttack.damage + "点伤害");
                 }
                 updateDisplay();
                 GameAnim.playDrawAnimations(this, drawn.size(), self == playerChar, () -> {
@@ -1977,7 +2034,7 @@ public class Game extends JFrame {
 
             if (def.addBurn > 0) {
                 attacker.addBurn(def.addBurn);
-                GameAnim.playFloatingText(this, "🔥+" + def.addBurn, new Color(255, 140, 0),
+                GameAnim.playFloatingText(this, "灼烧+" + def.addBurn, new Color(255, 140, 0),
                     attacker == playerChar
                         ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
                         : new Point(getWidth() / 2, getHeight() / 3 - 60));
@@ -1985,7 +2042,7 @@ public class Game extends JFrame {
 
             if (def.addBurnSelf > 0) {
                 defender.addBurn(def.addBurnSelf);
-                GameAnim.playFloatingText(this, "🔥+" + def.addBurnSelf, new Color(255, 140, 0),
+                GameAnim.playFloatingText(this, "灼烧+" + def.addBurnSelf, new Color(255, 140, 0),
                     defender == playerChar
                         ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
                         : new Point(getWidth() / 2, getHeight() / 3 - 60));
@@ -2041,7 +2098,7 @@ public class Game extends JFrame {
 
             if (def.addFreeze) {
                 attacker.setFrozen(true);
-                GameAnim.playFloatingText(this, "❄️冷冻", new Color(100, 180, 255),
+                GameAnim.playFloatingText(this, "冷冻", new Color(100, 180, 255),
                     attacker == playerChar
                         ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 60)
                         : new Point(getWidth() / 2, getHeight() / 3 - 60));
@@ -2049,7 +2106,7 @@ public class Game extends JFrame {
 
             if (def.addBleed > 0) {
                 attacker.addBleed(def.addBleed);
-                GameAnim.playFloatingText(this, "🩸+" + def.addBleed, new Color(180, 0, 0),
+                GameAnim.playFloatingText(this, "血+" + def.addBleed, new Color(180, 0, 0),
                     attacker == playerChar
                         ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 90)
                         : new Point(getWidth() / 2, getHeight() / 3 - 90));
@@ -2066,7 +2123,7 @@ public class Game extends JFrame {
                     defender.addBleed(pendingAttack.addBleed);
                     attacker.addBleed(pendingAttack.addBleed);
                     pendingAttack.addBleed = 0;
-                    GameAnim.playFloatingText(this, "🩸反弹", new Color(180, 0, 0),
+                    GameAnim.playFloatingText(this, "血反弹", new Color(180, 0, 0),
                         attacker == playerChar
                             ? new Point(getWidth() / 2, getHeight() * 3 / 4 - 90)
                             : new Point(getWidth() / 2, getHeight() / 3 - 90));
@@ -2125,7 +2182,7 @@ public class Game extends JFrame {
             int bleedDmg = defender.getBleedStacks();
             for (int i = 0; i < bleedDmg; i++) {
                 defender.takeDamage(1);
-                GameAnim.playFloatingText(this, "🩸-1", new Color(180, 0, 0),
+                GameAnim.playFloatingText(this, "血-1", new Color(180, 0, 0),
                     defender == playerChar
                         ? new Point(getWidth() / 2 - 30 + i * 30, getHeight() * 3 / 4 - 30)
                         : new Point(getWidth() / 2 - 30 + i * 30, getHeight() / 3 - 30));
@@ -2369,9 +2426,9 @@ public class Game extends JFrame {
                 if (hasPlayedBlackDefend) {
                     Card ct = discardPile.getFirst();
                     String cn = colorName(ct.getEffectiveColor());
-                    ui.phaseLabel.setText("【搭桥中】请再出一张" + cn + "色≤3的牌完成防御，或出黑牌/🧪/+3继续搭桥，或点击「跳过」");
+                    ui.phaseLabel.setText("【搭桥中】请再出一张" + cn + "色≤3的牌完成防御，或出黑牌/药水/+3继续搭桥，或点击「跳过」");
                 } else if (playerCanDefend()) {
-                    ui.phaseLabel.setText("【防御机会】AI出牌了！选一张数字≤3的匹配牌防御，或出黑牌/🧪/+3搭桥，或点击「跳过」");
+                    ui.phaseLabel.setText("【防御机会】AI出牌了！选一张数字≤3的匹配牌防御，或出黑牌/药水/+3搭桥，或点击「跳过」");
                 } else {
                     ui.phaseLabel.setText("【防御机会】AI出牌了！你无合法防御牌，请点击「跳过」");
                 }
@@ -2561,11 +2618,11 @@ public class Game extends JFrame {
         ui.fiveHealBtn.setVisible(isFiveChoice || isSaikiThreeDone);
         ui.fiveDamageBtn.setVisible(isFiveChoice || isSaikiThreeDone);
         if (isSaikiThreeDone) {
-            ui.fiveHealBtn.setText("📥 加入手牌");
-            ui.fiveDamageBtn.setText("🗑 弃掉");
+            ui.fiveHealBtn.setText("加入手牌");
+            ui.fiveDamageBtn.setText("弃掉");
         } else {
-            ui.fiveHealBtn.setText("❤️ 回血");
-            ui.fiveDamageBtn.setText("🗡️ 伤害");
+            ui.fiveHealBtn.setText("回血");
+            ui.fiveDamageBtn.setText("伤害");
         }
         ui.sevenChoiceBtn.setVisible(chanSevenKeepMode || chanFourSwapMode || (isSaikiThree && chanFourSelectOpponent) || currentPhase == Phase.PLAYER_SEVEN_CHOICE || isSaikiSix);
         if (chanSevenKeepMode) {

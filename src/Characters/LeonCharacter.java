@@ -6,7 +6,7 @@ public class LeonCharacter extends GameCharacter {
     }
 
     public LeonCharacter(boolean isAI) {
-        super(isAI ? "🐻‍❄️ AI Leon" : "🐻‍❄️ Leon", 100);
+        super(isAI ? "AI Leon" : "Leon", 100);
     }
 
     @Override

@@ -17,7 +17,7 @@ public class LeonHandler extends CharacterHandler {
         game.discardPile.addLast(chosen);
         game.pendingFiveChoice = false;
         game.forceOpponentDiscardOne = false;
-        game.showAttackDesc("⚔7️⃣ 弃掉AI的" + chosen);
+        game.showAttackDesc("7 弃掉AI的" + chosen);
         GameAnim.playFloatingText(game, "弃" + chosen, new Color(255, 60, 60),
             new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
         if (game.pendingAttack != null && game.pendingAttack.skipDefense) {
@@ -77,7 +77,7 @@ public class LeonHandler extends CharacterHandler {
 
                 if (revealResult.addBurn > 0) {
                     opponent.addBurn(revealResult.addBurn);
-                    GameAnim.playFloatingText(game, "🔥+" + revealResult.addBurn, new Color(255, 140, 0),
+                    GameAnim.playFloatingText(game, "灼烧+" + revealResult.addBurn, new Color(255, 140, 0),
                         opponent == game.playerChar
                             ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                             : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));

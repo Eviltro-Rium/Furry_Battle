@@ -27,7 +27,7 @@ public class EffectEngine {
 
         if (ar.addBurn > 0) {
             opponent.addBurn(ar.addBurn);
-            GameAnim.playFloatingText(game, "🔥+" + ar.addBurn, new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "灼烧+" + ar.addBurn, new Color(255, 140, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -35,20 +35,20 @@ public class EffectEngine {
 
         if (ar.addFreeze) {
             opponent.setFrozen(true);
-            GameAnim.playFloatingText(game, "❄️冷冻", new Color(100, 180, 255),
+            GameAnim.playFloatingText(game, "冷冻", new Color(100, 180, 255),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
         }
 
         if (ar.redAttack) {
-            ar.desc = ar.desc + " (🔴)";
+            ar.desc = ar.desc + " (红)";
         }
 
 
         if (ar.addBleed > 0) {
             opponent.addBleed(ar.addBleed);
-            GameAnim.playFloatingText(game, "🩸+" + ar.addBleed, new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "血+" + ar.addBleed, new Color(180, 0, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
@@ -56,7 +56,7 @@ public class EffectEngine {
 
         if (ar.passiveBleed > 0) {
             opponent.addBleed(ar.passiveBleed);
-            GameAnim.playFloatingText(game, "🩸+" + ar.passiveBleed + "(🟡)", new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "血+" + ar.passiveBleed + "(黄)", new Color(180, 0, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2 - 60, game.getHeight() * 3 / 4 - 120)
                     : new Point(game.getWidth() / 2 - 60, game.getHeight() / 3 - 120));
@@ -64,7 +64,7 @@ public class EffectEngine {
 
         if (ar.addBleedSelf > 0) {
             self.addBleed(ar.addBleedSelf);
-            GameAnim.playFloatingText(game, "🩸+" + ar.addBleedSelf, new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "血+" + ar.addBleedSelf, new Color(180, 0, 0),
                 self == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
@@ -72,7 +72,7 @@ public class EffectEngine {
 
         if (ar.addBurnSelf > 0) {
             self.addBurn(ar.addBurnSelf);
-            GameAnim.playFloatingText(game, "🔥+" + ar.addBurnSelf, new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "灼烧+" + ar.addBurnSelf, new Color(255, 140, 0),
                 self == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
