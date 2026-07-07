@@ -126,9 +126,10 @@ public class AIPlayer {
     }
 
     protected boolean isDefendCard(Card card, Card top) {
-        if (card.isBlack()) return hasLowCard();
+        if (card.isBlack()) return hasLowCard() || hand.size() == 1;
         if (card.isDrawThree()) return true;
         if (card.isPotion()) return true;
+        if (card.isSwapHand()) return true;
         if (card.isPurify() || card.isSuperPurify()) return aiHasDebuff;
         if (card.isWhite()) return card.getValue() <= 3 && canPlayOn(card, top);
         return card.getValue() <= 3 && canPlayOn(card, top);

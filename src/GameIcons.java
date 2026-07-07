@@ -36,6 +36,8 @@ public class GameIcons {
     static ImageIcon buffFreeze() { return scaled("/icons/buff_icons/freeze.png", 20, 20); }
     static ImageIcon buffBleed() { return scaled("/icons/buff_icons/bleed.png", 20, 20); }
 
+    static ImageIcon buffBloodthirsty() { return scaled("/icons/ui_icons/blood_thirsty.png", 20, 20); }
+
     static ImageIcon uiBattle() { return scaled("/icons/ui_icons/battle.png", 18, 18); }
     static ImageIcon uiBattleBig() { return scaled("/icons/ui_icons/battle.png", 32, 32); }
     static ImageIcon uiShield() { return scaled("/icons/ui_icons/shield.png", 18, 18); }

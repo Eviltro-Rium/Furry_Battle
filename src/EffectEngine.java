@@ -212,6 +212,19 @@ public class EffectEngine {
                 game.handleBlazeDefendTwoDraw(self, opponent, selfHand, onDone);
                 break;
 
+            case SERENITY_FIVE_REVEAL:
+                game.handleSerenityFiveReveal(self, opponent, selfHand, onDone);
+                break;
+            case SERENITY_ZERO_DISCARD:
+                game.handleSerenityZeroDiscard(self, opponent, selfHand, onDone);
+                break;
+            case SERENITY_DEFEND_TWO_DRAIN:
+                game.handleSerenityDefendTwoDrain(self, opponent, selfHand, onDone);
+                break;
+            case SERENITY_DEFEND_ZERO_REVEAL:
+                game.handleSerenityDefendZeroReveal(self, opponent, selfHand, onDone);
+                break;
+
             default:
                 break;
         }

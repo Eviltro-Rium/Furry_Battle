@@ -105,19 +105,21 @@ public class Game extends JFrame {
     }
 
     void onCharacterSelected(int playerChoice, int aiChoice) {
-        String[] charNames = {"Ryan", "Leon", "Chan", "Saiki", "Blaze"};
+        String[] charNames = {"Ryan", "Leon", "Chan", "Saiki", "Blaze", "Serenity"};
         playerChar = createCharacter(charNames[playerChoice], false);
         aiChar = createCharacter(charNames[aiChoice], true);
         ai = createAI(charNames[aiChoice], aiChar);
         if (ai instanceof LeonAI) ((LeonAI) ai).setOpponent(playerChar);
         if (ai instanceof SaikiAI) ((SaikiAI) ai).setCharacters(aiChar, playerChar);
         if (ai instanceof BlazeAI) ((BlazeAI) ai).setOpponent(playerChar);
+        if (ai instanceof SerenityAI) ((SerenityAI) ai).setOpponent(playerChar);
 
         handlers.put("Ryan", new RyanHandler(this));
         handlers.put("Leon", new LeonHandler(this));
         handlers.put("Chan", new ChanHandler(this));
         handlers.put("Saiki", new SaikiHandler(this));
         handlers.put("Blaze", new BlazeHandler(this));
+        handlers.put("Serenity", new SerenityHandler(this));
 
         initUI();
         startGame();
@@ -129,6 +131,7 @@ public class Game extends JFrame {
             case "Chan": return new ChanCharacter(isAI);
             case "Saiki": return new SaikiCharacter();
             case "Blaze": return new BlazeCharacter(isAI);
+            case "Serenity": return new SerenityCharacter(isAI);
             default: return new RyanCharacter(isAI);
         }
     }
@@ -143,6 +146,7 @@ public class Game extends JFrame {
                 return sai;
             }
             case "Blaze": return new BlazeAI(character);
+            case "Serenity": return new SerenityAI(character);
             default: return new RyanAI(character);
         }
     }
@@ -1096,11 +1100,7 @@ public class Game extends JFrame {
         }
 
         // === 第一步：正常防御 ===
-        if (!canDefend(card, top)) {
-            busy = false;
-            showMessage("该牌无法防御！需数字≤3且颜色或数字匹配弃牌库顶");
-            return;
-        }
+
 
         // 出黑牌 → 改变颜色搭桥，留在防御阶段
         if (card.isBlack()) {
@@ -1260,6 +1260,12 @@ public class Game extends JFrame {
                 busy = false;
                 updateDisplay();
             });
+            return;
+        }
+
+        if (!canDefend(card, top)) {
+            busy = false;
+            showMessage("该牌无法防御！需数字≤3且颜色或数字匹配弃牌库顶");
             return;
         }
 
@@ -1984,6 +1990,30 @@ public class Game extends JFrame {
         if (h instanceof BlazeHandler) ((BlazeHandler) h).handleBlazeDefendTwoDraw(self, opponent, selfHand, onDone);
     }
 
+    void handleSerenityFiveReveal(GameCharacter self, GameCharacter opponent,
+                                   List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof SerenityHandler) ((SerenityHandler) h).handleSerenityFiveReveal(self, opponent, selfHand, onDone);
+    }
+
+    void handleSerenityZeroDiscard(GameCharacter self, GameCharacter opponent,
+                                    List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof SerenityHandler) ((SerenityHandler) h).handleSerenityZeroDiscard(self, opponent, selfHand, onDone);
+    }
+
+    void handleSerenityDefendTwoDrain(GameCharacter self, GameCharacter opponent,
+                                       List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof SerenityHandler) ((SerenityHandler) h).handleSerenityDefendTwoDrain(self, opponent, selfHand, onDone);
+    }
+
+    void handleSerenityDefendZeroReveal(GameCharacter self, GameCharacter opponent,
+                                         List<Card> selfHand, Runnable onDone) {
+        CharacterHandler h = getHandler(self);
+        if (h instanceof SerenityHandler) ((SerenityHandler) h).handleSerenityDefendZeroReveal(self, opponent, selfHand, onDone);
+    }
+
     void handleSaikiZeroAttack(GameCharacter self, GameCharacter opponent,
                                  List<Card> selfHand, Runnable onDone) {
         CharacterHandler h = getHandler(self);
@@ -2541,6 +2571,9 @@ public class Game extends JFrame {
             bleedPnl.add(bleedNum);
             ui.aiHandPanel.add(bleedPnl);
         }
+        if (aiChar instanceof SerenityCharacter && ((SerenityCharacter) aiChar).isBloodthirst()) {
+            ui.aiHandPanel.add(GameIcons.makeIconLabel(GameIcons.buffBloodthirsty()));
+        }
         ui.aiHandPanel.revalidate();
         ui.aiHandPanel.repaint();
 
@@ -2587,6 +2620,9 @@ public class Game extends JFrame {
             bleedNum.setForeground(new Color(180, 0, 0));
             bleedPnl.add(bleedNum);
             ui.playerHandPanel.add(bleedPnl);
+        }
+        if (playerChar instanceof SerenityCharacter && ((SerenityCharacter) playerChar).isBloodthirst()) {
+            ui.playerHandPanel.add(GameIcons.makeIconLabel(GameIcons.buffBloodthirsty()));
         }
         ui.playerHandPanel.revalidate();
         ui.playerHandPanel.repaint();

@@ -23,7 +23,12 @@ public class GameCharacter {
         SAIKI_SIX_JUDGE,
         BLAZE_FOUR_DRAW,
 
-        BLAZE_DEFEND_TWO_DRAW
+        BLAZE_DEFEND_TWO_DRAW,
+
+        SERENITY_FIVE_REVEAL,
+        SERENITY_ZERO_DISCARD,
+        SERENITY_DEFEND_TWO_DRAIN,
+        SERENITY_DEFEND_ZERO_REVEAL
     }
 
     public GameCharacter(String name, int maxHp) {
