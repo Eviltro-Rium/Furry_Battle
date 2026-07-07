@@ -50,7 +50,7 @@
 
 **防御**：1️⃣1🔥+恢复2❤️ · 2️⃣反击½+抽1🃏 · 3️⃣格挡½+抽1🃏 · 0️⃣攻击方弃所有牌+双方各受等量🗡️
 
-### 🐱 Chan — 冷冻型操控者
+### 🐼 Chan — 冷冻型操控者
 
 | 血量 | 被动 |
 |---|---|
@@ -175,7 +175,7 @@ src/
 ├── Characters/
 │   ├── RyanCharacter.java    # 🐼 Ryan 角色逻辑
 │   ├── LeonCharacter.java    # 🐻‍❄️ Leon 角色逻辑
-│   ├── ChanCharacter.java    # 🐱 Chan 角色逻辑
+│   ├── ChanCharacter.java    # 🐼 Chan 角色逻辑
 │   ├── SaikiCharacter.java   # 🐺 Saiki 角色逻辑
 │   ├── BlazeCharacter.java   # 🐶 Blaze 角色逻辑
 │   └── SerenityCharacter.java # 🐶 Serenity 角色逻辑
@@ -183,7 +183,7 @@ src/
 │   ├── AIPlayer.java         # AI 基类（优先级系统）
 │   ├── RyanAI.java           # 🐼 Ryan AI
 │   ├── LeonAI.java           # 🐻‍❄️ Leon AI
-│   ├── ChanAI.java           # 🐱 Chan AI
+│   ├── ChanAI.java           # 🐼 Chan AI
 │   ├── SaikiAI.java          # 🐺 Saiki AI
 │   ├── BlazeAI.java          # 🐶 Blaze AI
 │   └── SerenityAI.java       # 🐶 Serenity AI
@@ -191,7 +191,7 @@ src/
 │   ├── CharacterHandler.java # Handler 基类
 │   ├── RyanHandler.java      # 🐼 Ryan 特殊交互
 │   ├── LeonHandler.java      # 🐻‍❄️ Leon 判定交互
-│   ├── ChanHandler.java      # 🐱 Chan 交互逻辑
+│   ├── ChanHandler.java      # 🐼 Chan 交互逻辑
 │   ├── SaikiHandler.java     # 🐺 Saiki 交互逻辑
 │   ├── BlazeHandler.java     # 🐶 Blaze 交互逻辑
 │   └── SerenityHandler.java  # 🐶 Serenity 交互逻辑
