@@ -10,32 +10,37 @@ public class Card {
     private final boolean purify;
     private final boolean superPurify;
     private final boolean swapHand;
+    private final boolean shuffleToDeck;
 
     public Card(int value, CardColor color) {
-        this(value, color, false, false, false, false, false, false);
+        this(value, color, false, false, false, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo) {
-        this(value, color, drawTwo, false, false, false, false, false);
+        this(value, color, drawTwo, false, false, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean potion) {
-        this(value, color, drawTwo, false, potion, false, false, false);
+        this(value, color, drawTwo, false, potion, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion) {
-        this(value, color, drawTwo, drawThree, potion, false, false, false);
+        this(value, color, drawTwo, drawThree, potion, false, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify) {
-        this(value, color, drawTwo, drawThree, potion, purify, false, false);
+        this(value, color, drawTwo, drawThree, potion, purify, false, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify) {
-        this(value, color, drawTwo, drawThree, potion, purify, superPurify, false);
+        this(value, color, drawTwo, drawThree, potion, purify, superPurify, false, false);
     }
 
     public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify, boolean swapHand) {
+        this(value, color, drawTwo, drawThree, potion, purify, superPurify, swapHand, false);
+    }
+
+    public Card(int value, CardColor color, boolean drawTwo, boolean drawThree, boolean potion, boolean purify, boolean superPurify, boolean swapHand, boolean shuffleToDeck) {
         this.value = value;
         this.color = color;
         this.chosenColor = null;
@@ -45,6 +50,7 @@ public class Card {
         this.purify = purify;
         this.superPurify = superPurify;
         this.swapHand = swapHand;
+        this.shuffleToDeck = shuffleToDeck;
     }
 
     public int getValue() {
@@ -87,8 +93,12 @@ public class Card {
         return swapHand;
     }
 
+    public boolean isShuffleToDeck() {
+        return shuffleToDeck;
+    }
+
     public boolean isItemCard() {
-        return isPotion() || isBlack() || isDrawThree() || isPurify() || isSuperPurify() || isSwapHand();
+        return isPotion() || isBlack() || isDrawThree() || isPurify() || isSuperPurify() || isSwapHand() || isShuffleToDeck();
     }
 
     public boolean isNumberCard() {
@@ -113,7 +123,10 @@ public class Card {
     public String toString() {
         if (isBlack()) {
             String chosen = chosenColor != null ? colorName(chosenColor) : "";
-            String suffix = drawTwo ? "+2" : "";
+            String suffix;
+            if (shuffleToDeck) suffix = "洗入";
+            else if (drawTwo) suffix = "+2";
+            else suffix = "";
             return "[黑" + suffix + chosen + "]";
         }
         if (isWhite()) {

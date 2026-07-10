@@ -63,12 +63,9 @@ public class LeonCharacter extends GameCharacter {
                 r.desc = "7️⃣ 弃掉对手1张牌 + 造成6点伤害 + 施加2层灼伤";
                 break;
             case 0:
-                r.damage = 7;
-                r.addBurn = 1;
-                r.forceOpponentDiscard = 2;
-                r.selfDamage = 2;
+                r.addFollowUp(FollowUp.LEON_ZERO_AOE);
                 r.skipDefense = true;
-                r.desc = "0️⃣ 敌方弃2牌 + 施加1层灼伤 + 7点伤害（跳过防御），自伤2点";
+                r.desc = "0️⃣ 对所有对手+1[灼烧]，弃对手合计2牌，7[伤害]（不可防御），每有1个对手存活自伤2点";
                 break;
             default:
                 r.desc = "";

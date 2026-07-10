@@ -17,7 +17,8 @@ public class SaikiAI extends AIPlayer {
     @Override
     protected boolean shouldSkipCard(Card card) {
         if (card.isItemCard()) return false;
-        if (card.getValue() == 7 && opponent != null && opponent.getBleedStacks() == 0) return true;
+        int v = card.getValue();
+        if (v == 7 && aiOpponentBleedStacks == 0) return true;
         return false;
     }
 
@@ -25,22 +26,22 @@ public class SaikiAI extends AIPlayer {
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();
-        if (v == 4 && opponent != null && opponent.getBleedStacks() > 0) return 80;
-        if (v == 7 && opponent != null && opponent.getBleedStacks() >= 2) return 75;
-        if (v == 0 && opponent != null && opponent.getBleedStacks() >= 2) return 70;
-        if (v == 5 && character != null) {
-            int hp = character.getCurrentHp();
-            if (hp <= 20) return 65;
-            if (hp <= 50) return 60;
+        if (v == 0 && aiOpponentBleedStacks >= 2) return 82;
+        if (v == 4 && aiOpponentBleedStacks > 0) return 78;
+        if (v == 7 && aiOpponentBleedStacks >= 2) return 75;
+        if (v == 5) {
+            if (aiHpPercent <= 20) return 70;
+            if (aiHpPercent <= 50) return 65;
+            return 58;
         }
         if (v == 6 && hand != null) {
             Card sixCard = chooseSixCard(hand);
-            if (sixCard != null && sixCard.getValue() >= 5) return 55;
+            if (sixCard != null && sixCard.getValue() >= 5) return 60;
         }
-        Card.CardColor effective = top.getEffectiveColor();
-        if (card.getEffectiveColor() == Card.CardColor.YELLOW || (card.getColor() == Card.CardColor.YELLOW)) {
-            if (v >= 1 && v <= 7) return super.attackPriority(card, top) + 5;
-        }
+        if (v == 0 && aiOpponentBleedStacks == 1) return 55;
+        if (v == 3 && aiOpponentHandSize > 0) return 48;
+        if (v == 1) return 42;
+        if (v == 2) return 40;
         return super.attackPriority(card, top);
     }
 
@@ -48,8 +49,9 @@ public class SaikiAI extends AIPlayer {
     protected int defendPriority(Card card, Card top) {
         if (card.isItemCard()) return super.defendPriority(card, top);
         int v = card.getValue();
-        if (v == 0) return 80;
-        if (v == 2 && opponent != null) return 55;
+        if (v == 0) return 85;
+        if (v == 2 && aiOpponentBleedStacks >= 1) return 60;
+        if (v == 3) return 50;
         return super.defendPriority(card, top);
     }
 

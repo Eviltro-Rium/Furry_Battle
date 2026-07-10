@@ -14,12 +14,16 @@ mkdir -p "$OUT_DIR" "$DIST_DIR"
 # 2. 编译
 echo "[1/4] 编译中..."
 $JAVA_HOME/bin/javac -sourcepath src -d "$OUT_DIR" \
-  src/Card.java src/CardDeck.java src/GameCharacter.java \
+  src/Core/Card.java src/Core/CardDeck.java src/Core/GameCharacter.java src/Core/Participant.java \
   src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/Characters/BlazeCharacter.java src/Characters/SerenityCharacter.java \
   src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/AI/BlazeAI.java src/AI/SerenityAI.java \
-  src/GameIcons.java src/GameUI.java src/GameAnim.java src/EffectEngine.java \
-  src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Dialogs/ColorChooserDialog.java src/Game.java \
-  src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java src/Handlers/SerenityHandler.java
+  src/UI/GameIcons.java src/UI/GameUI.java src/UI/GameUI1v2.java src/UI/GameAnim.java src/UI/EffectEngine.java \
+  src/UI/CharacterSelectPanel.java src/UI/ModeSelectPanel.java src/UI/SkillDesc.java \
+  src/Mode/GameMode.java src/Mode/Mode1v1.java src/Mode/Mode1v2.java src/Mode/TurnManager.java \
+  src/Engine/AttackEngine.java src/Engine/DefenseEngine.java src/Engine/TurnEngine.java \
+  src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java src/Handlers/SerenityHandler.java \
+  src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Dialogs/ColorChooserDialog.java src/Dialogs/CardTooltipDialog.java \
+  src/Game.java
 
 mkdir -p "$OUT_DIR/icons/card_icons" "$OUT_DIR/icons/buff_icons" "$OUT_DIR/icons/ui_icons"
 cp src/icons/card_icons/*.png "$OUT_DIR/icons/card_icons/"

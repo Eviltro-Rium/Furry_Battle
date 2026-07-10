@@ -24,6 +24,7 @@ public class GameIcons {
     static ImageIcon cardPurify() { return scaled("/icons/card_icons/purify.png", 36, 36); }
     static ImageIcon cardSuperPurify() { return scaled("/icons/card_icons/super_purify.png", 36, 36); }
     static ImageIcon cardSwapHand() { return scaled("/icons/card_icons/swap_cards.png", 36, 36); }
+    static ImageIcon cardShuffleToDeck() { return scaled("/icons/card_icons/shuffle.png", 36, 36); }
 
     static ImageIcon cardBlackSmall() { return scaled("/icons/card_icons/color_palette.png", 14, 14); }
     static ImageIcon cardPotionSmall() { return scaled("/icons/card_icons/potion.png", 14, 14); }
@@ -31,12 +32,14 @@ public class GameIcons {
     static ImageIcon cardPurifySmall() { return scaled("/icons/card_icons/purify.png", 14, 14); }
     static ImageIcon cardSuperPurifySmall() { return scaled("/icons/card_icons/super_purify.png", 14, 14); }
     static ImageIcon cardSwapHandSmall() { return scaled("/icons/card_icons/swap_cards.png", 14, 14); }
+    static ImageIcon cardShuffleToDeckSmall() { return scaled("/icons/card_icons/shuffle.png", 14, 14); }
 
-    static ImageIcon buffBurn() { return scaled("/icons/buff_icons/burn.png", 20, 20); }
-    static ImageIcon buffFreeze() { return scaled("/icons/buff_icons/freeze.png", 20, 20); }
-    static ImageIcon buffBleed() { return scaled("/icons/buff_icons/bleed.png", 20, 20); }
+    static ImageIcon buffBurn() { return scaled("/icons/buff_icons/burn.png", 36, 36); }
+    static ImageIcon buffFreeze() { return scaled("/icons/buff_icons/freeze.png", 36, 36); }
+    static ImageIcon buffBleed() { return scaled("/icons/buff_icons/bleed.png", 36, 36); }
+    static ImageIcon buffGuard() { return scaled("/icons/buff_icons/guard.png", 36, 36); }
 
-    static ImageIcon buffBloodthirsty() { return scaled("/icons/ui_icons/blood_thirsty.png", 20, 20); }
+    static ImageIcon buffBloodthirsty() { return scaled("/icons/ui_icons/blood_thirsty.png", 36, 36); }
 
     static ImageIcon uiBattle() { return scaled("/icons/ui_icons/battle.png", 18, 18); }
     static ImageIcon uiBattleBig() { return scaled("/icons/ui_icons/battle.png", 32, 32); }
@@ -56,6 +59,28 @@ public class GameIcons {
         JLabel lbl = new JLabel(icon);
         lbl.setVerticalTextPosition(SwingConstants.CENTER);
         lbl.setHorizontalTextPosition(SwingConstants.RIGHT);
+        return lbl;
+    }
+
+    static JLabel makeBuffLabel(ImageIcon icon, int stacks, Color numColor) {
+        if (icon == null) return new JLabel("?");
+        int iw = icon.getIconWidth(), ih = icon.getIconHeight();
+        BufferedImage buf = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = buf.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        icon.paintIcon(null, g2, 0, 0);
+        String num = String.valueOf(stacks);
+        int fontSize = iw > 24 ? 13 : 10;
+        g2.setFont(new Font("Arial", Font.BOLD, fontSize));
+        FontMetrics fm = g2.getFontMetrics();
+        int tx = iw - fm.stringWidth(num) - 1;
+        int ty = fm.getAscent() - 1;
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.drawString(num, tx + 1, ty + 1);
+        g2.setColor(numColor);
+        g2.drawString(num, tx, ty);
+        g2.dispose();
+        JLabel lbl = new JLabel(new ImageIcon(buf));
         return lbl;
     }
 }

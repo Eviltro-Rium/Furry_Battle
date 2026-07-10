@@ -8,6 +8,7 @@ public class GameCharacter {
     protected int burnStacks;
     protected boolean frozen;
     protected int bleedStacks;
+    protected int guardStacks;
 
     public enum FollowUp {
         FIVE_CHOICE,
@@ -28,7 +29,11 @@ public class GameCharacter {
         SERENITY_FIVE_REVEAL,
         SERENITY_ZERO_DISCARD,
         SERENITY_DEFEND_TWO_DRAIN,
-        SERENITY_DEFEND_ZERO_REVEAL
+        SERENITY_DEFEND_ZERO_REVEAL,
+        LEON_ZERO_AOE,
+        MOZE_FOUR_GUARD,
+        MOZE_FIVE_REVEAL,
+        MOZE_SEVEN_CLEANSE
     }
 
     public GameCharacter(String name, int maxHp) {
@@ -38,6 +43,7 @@ public class GameCharacter {
         this.burnStacks = 0;
         this.frozen = false;
         this.bleedStacks = 0;
+        this.guardStacks = 0;
     }
 
     public String getName() { return name; }
@@ -76,6 +82,23 @@ public class GameCharacter {
         burnStacks = 0;
         frozen = false;
         bleedStacks = 0;
+        guardStacks = 0;
+    }
+
+    public void clearDebuffsOnly() {
+        burnStacks = 0;
+        frozen = false;
+        bleedStacks = 0;
+    }
+
+    public int getGuardStacks() { return guardStacks; }
+
+    public void addGuard(int stacks) {
+        guardStacks = Math.min(5, guardStacks + stacks);
+    }
+
+    public void removeGuard(int stacks) {
+        guardStacks = Math.max(0, guardStacks - stacks);
     }
 
     public void takeDamage(int amount) {
@@ -84,6 +107,11 @@ public class GameCharacter {
 
     public void heal(int amount) {
         currentHp = Math.min(maxHp, currentHp + amount);
+    }
+
+    public void setDoubleHp() {
+        maxHp *= 2;
+        currentHp = maxHp;
     }
 
     public void reset() {
@@ -136,6 +164,10 @@ public class GameCharacter {
         public int addBleedSelf = 0;
         public int damagePerBleed = 0;
         public boolean healEqualsDamage = false;
+        public int addGuard = 0;
+        public int damagePerGuard = 0;
+        public boolean unblockableIfNoGuard = false;
+        public int cleanseDamagePerDebuff = 0;
         public boolean immuneDebuff = false;
         public boolean reflectDebuff = false;
         public int sharedDamage = 0;
@@ -176,6 +208,9 @@ public class GameCharacter {
         public int addBleed = 0;
 
         public boolean immuneDebuff = false;
+        public int addGuard = 0;
+        public int healPerGuard = 0;
+        public int counterPerGuard = 0;
         public boolean reflectDebuff = false;
         public int sharedDamage = 0;
         public boolean discardRevealed = false;

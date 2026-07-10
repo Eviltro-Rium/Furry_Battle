@@ -13,9 +13,9 @@ public class ChanAI extends AIPlayer {
     @Override
     protected boolean shouldSkipCard(Card card) {
         if (card.isItemCard()) return false;
-        if (character == null) return false;
         int v = card.getValue();
-        if (v == 1 && character.getCurrentHp() > character.getMaxHp() / 2) return true;
+        if (v == 1 && aiHpPercent > 50) return true;
+        if (v == 5 && aiHpPercent <= 30) return true;
         return false;
     }
 
@@ -23,22 +23,24 @@ public class ChanAI extends AIPlayer {
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();
-        if (v == 6 && opponentHasDebuff()) return 70;
-        if (v == 7 && hand != null && hand.size() >= 3) return 65;
-        if (v == 5 && character != null && character.getCurrentHp() > 5) return 60;
+        if (v == 0) return 72;
+        if (v == 4 && (aiOpponentBleedStacks > 0 || aiOpponentBurnStacks > 0)) return 70;
+        if (v == 6) return 62;
+        if (v == 7 && hand != null && hand.size() >= 3) return 60;
+        if (v == 5 && aiHpPercent > 30) return 55;
+        if (v == 2) return 40;
+        if (v == 3) return 38;
+        if (v == 1 && aiHpPercent <= 50) return 50;
         return super.attackPriority(card, top);
-    }
-
-    private boolean opponentHasDebuff() {
-        return aiHasDebuff;
     }
 
     @Override
     protected int defendPriority(Card card, Card top) {
         if (card.isItemCard()) return super.defendPriority(card, top);
         int v = card.getValue();
-        if (v == 0 && character != null && character.getCurrentHp() <= character.getMaxHp() / 3) return 80;
+        if (v == 0) return 85;
         if (v == 2) return 55;
+        if (v == 3) return 45;
         return super.defendPriority(card, top);
     }
 

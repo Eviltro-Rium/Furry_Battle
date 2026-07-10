@@ -1,5 +1,3 @@
-import java.util.List;
-
 public class BlazeAI extends AIPlayer {
 
     private GameCharacter character;
@@ -16,10 +14,8 @@ public class BlazeAI extends AIPlayer {
     @Override
     protected boolean shouldSkipCard(Card card) {
         if (card.isItemCard()) return false;
-        if (character == null) return false;
         int v = card.getValue();
-        if (v == 5) return false;
-        if (v == 6 && character.getBurnStacks() == 0) return true;
+        if (v == 6 && aiBurnStacks == 0) return true;
         return false;
     }
 
@@ -27,11 +23,16 @@ public class BlazeAI extends AIPlayer {
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();
-        if (v == 2 && character != null && character.getBurnStacks() == 0) return 60;
-        if (v == 7 && character != null && (character.getBurnStacks() + (opponent != null ? opponent.getBurnStacks() : 0)) >= 3) return 65;
-        if (v == 5 && character != null && character.getBurnStacks() >= 2) return 55;
-        if (v == 0) return 45;
-        if (v == 6 && character != null && character.getBurnStacks() >= 2) return 50;
+        if (v == 5 && aiBurnStacks >= 3) return 80;
+        if (v == 7 && (aiBurnStacks + aiOpponentBurnStacks) >= 4) return 75;
+        if (v == 0) return 68;
+        if (v == 5 && aiBurnStacks >= 2) return 65;
+        if (v == 2 && aiOpponentGuardStacks > 0) return 62;
+        if (v == 6 && aiBurnStacks >= 3) return 58;
+        if (v == 3 && aiBurnStacks < 4) return 50;
+        if (v == 1) return 45;
+        if (v == 4 && aiOpponentHandSize > 0) return 48;
+        if (v == 2 && aiBurnStacks == 0) return 42;
         return super.attackPriority(card, top);
     }
 
@@ -39,9 +40,11 @@ public class BlazeAI extends AIPlayer {
     protected int defendPriority(Card card, Card top) {
         if (card.isItemCard()) return super.defendPriority(card, top);
         int v = card.getValue();
-        if (v == 3 && character != null && character.getBurnStacks() >= 2) return 65;
-        if (v == 0 && character != null && character.getBurnStacks() <= 1) return 70;
-        if (v == 1 && character != null && character.getBurnStacks() >= 1) return 55;
+        if (v == 0 && aiBurnStacks >= 3) return 80;
+        if (v == 3 && aiBurnStacks >= 2) return 68;
+        if (v == 1 && aiBurnStacks >= 1) return 58;
+        if (v == 0 && aiBurnStacks <= 1) return 55;
+        if (v == 2) return 45;
         return super.defendPriority(card, top);
     }
 }

@@ -1,5 +1,3 @@
-import java.util.List;
-
 public class SerenityAI extends AIPlayer {
 
     private GameCharacter character;
@@ -13,10 +11,12 @@ public class SerenityAI extends AIPlayer {
         this.opponent = opponent;
     }
 
+    private boolean isBloodthirsty() {
+        return aiHpPercent < 30;
+    }
+
     @Override
     protected boolean shouldSkipCard(Card card) {
-        if (card.isItemCard()) return false;
-        if (character == null) return false;
         return false;
     }
 
@@ -24,13 +24,16 @@ public class SerenityAI extends AIPlayer {
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();
-        boolean bt = character != null && character.getCurrentHp() < 30;
-        if (v == 1 && character != null && character.getCurrentHp() < character.getMaxHp() * 0.6) return 55;
-        if (v == 2 && bt) return 60;
-        if (v == 4 && bt) return 58;
-        if (v == 6 && bt) return 65;
-        if (v == 7 && bt) return 62;
-        if (v == 0) return 45;
+        boolean bt = isBloodthirsty();
+        if (v == 0) return bt ? 82 : 60;
+        if (v == 7) return bt ? 78 : 50;
+        if (v == 6) return bt ? 75 : 55;
+        if (v == 4) return bt ? 72 : 48;
+        if (v == 2) return bt ? 68 : 42;
+        if (v == 1 && bt) return 65;
+        if (v == 1 && aiHpPercent < 60) return 52;
+        if (v == 5) return 45;
+        if (v == 3) return 40;
         return super.attackPriority(card, top);
     }
 
@@ -38,10 +41,11 @@ public class SerenityAI extends AIPlayer {
     protected int defendPriority(Card card, Card top) {
         if (card.isItemCard()) return super.defendPriority(card, top);
         int v = card.getValue();
-        boolean bt = character != null && character.getCurrentHp() < 30;
-        if (v == 2 && opponent != null && opponent.getBleedStacks() >= 1) return 60;
+        boolean bt = isBloodthirsty();
+        if (v == 0) return 80;
+        if (v == 2 && aiOpponentBleedStacks >= 1) return 62;
         if (v == 3 && bt) return 58;
-        if (v == 0) return 50;
+        if (v == 1 && bt) return 55;
         return super.defendPriority(card, top);
     }
 }

@@ -11,7 +11,7 @@ public class SaikiHandler extends CharacterHandler {
     @Override
     void doSevenChoice(int aiCardIndex) {
         if (game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card chosen = oppHand.remove(aiCardIndex);
         game.discardPile.addLast(chosen);
@@ -24,7 +24,7 @@ public class SaikiHandler extends CharacterHandler {
             game.showDefendDesc("跳过防御");
             Timer skipTimer = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
-                game.resolvePostDefense(game.playerChar, game.aiChar);
+                game.resolvePostDefense(game.playerChar, game.getCurrentAttackTarget());
                 game.clearAIZones();
                 game.currentPhase = Game.Phase.PLAYER_PLAY;
                 game.updateDisplay();
@@ -63,11 +63,14 @@ public class SaikiHandler extends CharacterHandler {
 
     private void handleAIThreeDraw(GameCharacter self, GameCharacter opponent,
                                     List<Card> selfHand, List<Card> oppHand, Runnable onDone) {
-        SaikiAI saikiAI = (SaikiAI) game.ai;
+        AIPlayer aiPlayer = game.getCurrentTurnAI();
         int idx = (int)(Math.random() * oppHand.size());
         Card drawn = oppHand.remove(idx);
 
-        boolean discard = saikiAI.chooseThreeDiscard(drawn);
+        boolean discard = false;
+        if (aiPlayer instanceof SaikiAI) {
+            discard = ((SaikiAI) aiPlayer).chooseThreeDiscard(drawn);
+        }
         if (discard) {
             game.discardPile.addLast(drawn);
             game.showAttackDesc("3️⃣ AI抽走你的" + drawn + "并弃掉");
@@ -95,7 +98,7 @@ public class SaikiHandler extends CharacterHandler {
     }
 
     void doSaikiThreeOpponentSelected(int aiCardIndex) {
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card drawn = oppHand.remove(aiCardIndex);
 
@@ -149,8 +152,11 @@ public class SaikiHandler extends CharacterHandler {
 
     private void handleAISixJudge(GameCharacter self, GameCharacter opponent,
                                     List<Card> selfHand, Runnable onDone) {
-        SaikiAI saikiAI = (SaikiAI) game.ai;
-        Card judgeCard = saikiAI.chooseSixCard(selfHand);
+        AIPlayer aiPlayer = game.getCurrentTurnAI();
+        Card judgeCard = null;
+        if (aiPlayer instanceof SaikiAI) {
+            judgeCard = ((SaikiAI) aiPlayer).chooseSixCard(selfHand);
+        }
         if (judgeCard == null) {
             game.showAttackDesc("6️⃣ 无数字牌可判定");
             Timer t = new Timer(Game.DELAY_EFFECT, e -> { ((Timer)e.getSource()).stop(); onDone.run(); });
@@ -158,15 +164,16 @@ public class SaikiHandler extends CharacterHandler {
             return;
         }
 
-        selfHand.remove(judgeCard);
-        int dmg = (int) Math.ceil(judgeCard.getValue() * 1.5);
-        boolean isYellow = judgeCard.getColor() == Card.CardColor.YELLOW;
+        final Card finalJudge = judgeCard;
+        selfHand.remove(finalJudge);
+        int dmg = (int) Math.ceil(finalJudge.getValue() * 1.5);
+        boolean isYellow = finalJudge.getColor() == Card.CardColor.YELLOW;
 
         Point from = GameAnim.getAIHandCenter(game.ui, game);
         Point to = GameAnim.getRevealPanelCenter(game.ui, game);
-        GameAnim.playFlyAnimation(game, judgeCard, from, to, () -> {
-            game.showAIRevealCard(judgeCard);
-            String desc = "6️⃣ 判定" + judgeCard + " → " + dmg + "点伤害";
+        GameAnim.playFlyAnimation(game, finalJudge, from, to, () -> {
+            game.showAIRevealCard(finalJudge);
+            String desc = "6️⃣ 判定" + finalJudge + " → " + dmg + "点伤害";
             if (isYellow) {
                 opponent.addBleed(1);
                 desc += "+1层流血";
@@ -178,7 +185,7 @@ public class SaikiHandler extends CharacterHandler {
             game.pendingAttack.desc = desc;
             game.showAttackDesc(desc);
 
-            game.discardPile.addLast(judgeCard);
+            game.discardPile.addLast(finalJudge);
 
             Timer t = new Timer(Game.DELAY_SKIP, e -> {
                 ((Timer)e.getSource()).stop();
@@ -263,24 +270,25 @@ public class SaikiHandler extends CharacterHandler {
     void handleSaikiZeroAttack(GameCharacter self, GameCharacter opponent,
                                  List<Card> selfHand, Runnable onDone) {
         int oppBleed = opponent.getBleedStacks();
-        int selfBleed = self.getBleedStacks();
         int dmg = 3 * oppBleed + 1;
-        int healAmt = oppBleed + selfBleed;
+
+        int totalBleed = game.playerChar.getBleedStacks() + game.aiChar.getBleedStacks()
+            + (game.is1v2 && game.aiChar2 != null ? game.aiChar2.getBleedStacks() : 0);
 
         opponent.addBleed(1);
-        GameAnim.playFloatingText(game, "血+1", new Color(180, 0, 0),
+        GameAnim.playFloatingText(game, "[流血]+1", new Color(180, 0, 0),
             opponent == game.playerChar
                 ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                 : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
 
         game.pendingAttack = new GameCharacter.AttackResult();
         game.pendingAttack.damage = dmg;
-        game.pendingAttack.desc = "0️⃣ " + dmg + "点伤害(3×" + oppBleed + "+1)+1层流血+恢复" + healAmt;
+        game.pendingAttack.desc = "0️⃣ " + dmg + "[伤害](3×" + oppBleed + "+1)+1[流血]+恢复" + totalBleed;
         game.showAttackDesc(game.pendingAttack.desc);
 
-        self.heal(healAmt);
-        if (healAmt > 0) {
-            GameAnim.playFloatingText(game, "+" + healAmt, new Color(60, 220, 60),
+        self.heal(totalBleed);
+        if (totalBleed > 0) {
+            GameAnim.playFloatingText(game, "+" + totalBleed + "[生命]", new Color(60, 220, 60),
                 self == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3));

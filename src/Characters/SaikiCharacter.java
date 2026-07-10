@@ -73,7 +73,7 @@ public class SaikiCharacter extends GameCharacter {
         if (card.getEffectiveColor() == Card.CardColor.YELLOW) {
             r.passiveBleed = 1;
             if (v != 4 && v != 0) {
-                r.desc += " (黄被动+1流血)";
+                r.desc += " ([被动]+1流血)";
             }
         }
 

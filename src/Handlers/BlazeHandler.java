@@ -11,7 +11,7 @@ public class BlazeHandler extends CharacterHandler {
     @Override
     void doSevenChoice(int aiCardIndex) {
         if (game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card chosen = oppHand.remove(aiCardIndex);
         game.discardPile.addLast(chosen);
@@ -125,7 +125,7 @@ public class BlazeHandler extends CharacterHandler {
     }
 
     void doBlazeFourOpponentSelected(int aiCardIndex) {
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card drawn = oppHand.remove(aiCardIndex);
 

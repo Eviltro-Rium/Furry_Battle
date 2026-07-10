@@ -27,7 +27,7 @@ public class EffectEngine {
 
         if (ar.addBurn > 0) {
             opponent.addBurn(ar.addBurn);
-            GameAnim.playFloatingText(game, "灼烧+" + ar.addBurn, new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "+" + ar.addBurn + "[灼烧]", new Color(255, 140, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -35,7 +35,7 @@ public class EffectEngine {
 
         if (ar.addFreeze) {
             opponent.setFrozen(true);
-            GameAnim.playFloatingText(game, "冷冻", new Color(100, 180, 255),
+            GameAnim.playFloatingText(game, "[冷冻]", new Color(100, 180, 255),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -48,7 +48,7 @@ public class EffectEngine {
 
         if (ar.addBleed > 0) {
             opponent.addBleed(ar.addBleed);
-            GameAnim.playFloatingText(game, "血+" + ar.addBleed, new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "+" + ar.addBleed + "[流血]", new Color(180, 0, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
@@ -56,7 +56,7 @@ public class EffectEngine {
 
         if (ar.passiveBleed > 0) {
             opponent.addBleed(ar.passiveBleed);
-            GameAnim.playFloatingText(game, "血+" + ar.passiveBleed + "(黄)", new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "+" + ar.passiveBleed + "[流血]([黄])", new Color(180, 0, 0),
                 opponent == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2 - 60, game.getHeight() * 3 / 4 - 120)
                     : new Point(game.getWidth() / 2 - 60, game.getHeight() / 3 - 120));
@@ -64,7 +64,7 @@ public class EffectEngine {
 
         if (ar.addBleedSelf > 0) {
             self.addBleed(ar.addBleedSelf);
-            GameAnim.playFloatingText(game, "血+" + ar.addBleedSelf, new Color(180, 0, 0),
+            GameAnim.playFloatingText(game, "+" + ar.addBleedSelf + "[流血]", new Color(180, 0, 0),
                 self == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
@@ -72,7 +72,7 @@ public class EffectEngine {
 
         if (ar.addBurnSelf > 0) {
             self.addBurn(ar.addBurnSelf);
-            GameAnim.playFloatingText(game, "灼烧+" + ar.addBurnSelf, new Color(255, 140, 0),
+            GameAnim.playFloatingText(game, "+" + ar.addBurnSelf + "[灼烧]", new Color(255, 140, 0),
                 self == game.getPlayerChar()
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 60)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 60));
@@ -122,6 +122,18 @@ public class EffectEngine {
             ar.desc = ar.desc + " (流血" + opponent.getBleedStacks() + "层+" + extra + ")";
         }
 
+        if (ar.addGuard > 0) {
+            self.addGuard(ar.addGuard);
+            GameAnim.playFloatingText(game, "+" + ar.addGuard + "[守护]", new Color(100, 200, 255),
+                self == game.getPlayerChar()
+                    ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 90)
+                    : new Point(game.getWidth() / 2, game.getHeight() / 3 - 90));
+        }
+
+        if (ar.unblockableIfNoGuard && self.getGuardStacks() == 0) {
+            ar.skipDefense = true;
+        }
+
 
 
 
@@ -132,7 +144,7 @@ public class EffectEngine {
                     int idx = (int)(Math.random() * oppHand.size());
                     Card discarded = oppHand.remove(idx);
                     game.getDiscardPile().addLast(discarded);
-                    GameAnim.playFloatingText(game, "弃" + discarded, new Color(255, 60, 60),
+                    GameAnim.playFloatingText(game, "弃1[牌]", new Color(255, 60, 60),
                         new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 30));
                 }
             } else {
@@ -151,13 +163,13 @@ public class EffectEngine {
             Point loc = self == game.getPlayerChar()
                 ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4)
                 : new Point(game.getWidth() / 2, game.getHeight() / 3);
-            GameAnim.playFloatingText(game, "+" + ar.selfHeal, new Color(60, 220, 60), loc);
+            GameAnim.playFloatingText(game, "+" + ar.selfHeal + "[生命]", new Color(60, 220, 60), loc);
         }
         if (ar.selfDamage > 0 && !self.isImmuneToBurn()) {
             Point loc = self == game.getPlayerChar()
                 ? new Point(game.getWidth() / 2 - 60, game.getHeight() * 3 / 4)
                 : new Point(game.getWidth() / 2 - 60, game.getHeight() / 3);
-            GameAnim.playFloatingText(game, "-" + ar.selfDamage, new Color(255, 60, 60), loc);
+            GameAnim.playFloatingText(game, "-" + ar.selfDamage + "[伤害]", new Color(255, 60, 60), loc);
         }
         if (ar.damage > 0) msg += " (即将造成" + ar.damage + "点伤害)";
         game.showAttackDesc(msg);
@@ -223,6 +235,18 @@ public class EffectEngine {
                 break;
             case SERENITY_DEFEND_ZERO_REVEAL:
                 game.handleSerenityDefendZeroReveal(self, opponent, selfHand, onDone);
+                break;
+            case LEON_ZERO_AOE:
+                game.handleLeonZeroAoe(self, opponent, selfHand, onDone);
+                break;
+            case MOZE_FOUR_GUARD:
+                game.handleMozeFourGuard(self, opponent, selfHand, onDone);
+                break;
+            case MOZE_FIVE_REVEAL:
+                game.handleMozeFiveReveal(self, opponent, selfHand, opponent == game.getPlayerChar() ? game.getPlayerHand() : game.getAIHand(), onDone);
+                break;
+            case MOZE_SEVEN_CLEANSE:
+                game.handleMozeSevenCleanse(self, opponent, selfHand, onDone);
                 break;
 
             default:

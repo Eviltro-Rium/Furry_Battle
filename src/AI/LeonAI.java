@@ -14,10 +14,9 @@ public class LeonAI extends AIPlayer {
     @Override
     protected boolean shouldSkipCard(Card card) {
         if (card.isItemCard()) return false;
-        if (character == null) return false;
         int v = card.getValue();
-        if (character.getCurrentHp() >= character.getMaxHp() && v == 2) return true;
-        if (v == 1 && opponent != null && opponent.getBurnStacks() >= 4) return true;
+        if (aiFullHp && v == 2) return true;
+        if (v == 1 && aiOpponentBurnStacks >= 4) return true;
         return false;
     }
 
@@ -25,9 +24,15 @@ public class LeonAI extends AIPlayer {
     protected int attackPriority(Card card, Card top) {
         if (card.isItemCard()) return super.attackPriority(card, top);
         int v = card.getValue();
-        if (v == 4 && opponent != null && opponent.getBurnStacks() > 0) return 75;
-        if (v == 7 && opponent != null && opponent.getBurnStacks() >= 2) return 70;
-        if (v == 0 && character != null && character.getCurrentHp() > character.getMaxHp() / 2) return 10;
+        if (v == 4 && aiOpponentBurnStacks > 0) return 78;
+        if (v == 7 && aiOpponentBurnStacks >= 2) return 73;
+        if (v == 0) {
+            if (aiHpPercent > 60) return 12;
+            if (aiHpPercent > 40) return 25;
+            return 40;
+        }
+        if (v == 2 && aiOpponentBurnStacks == 0) return 45;
+        if (v == 3 && aiOpponentBurnStacks == 0) return 42;
         return super.attackPriority(card, top);
     }
 
@@ -35,7 +40,8 @@ public class LeonAI extends AIPlayer {
     protected int defendPriority(Card card, Card top) {
         if (card.isItemCard()) return super.defendPriority(card, top);
         int v = card.getValue();
-        if (v == 0 && character != null && character.getCurrentHp() <= character.getMaxHp() / 3) return 80;
+        if (v == 0 && aiHpPercent <= 33) return 85;
+        if (v == 1 && aiOpponentBurnStacks < 4) return 55;
         return super.defendPriority(card, top);
     }
 

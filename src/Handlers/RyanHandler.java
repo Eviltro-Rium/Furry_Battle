@@ -300,7 +300,7 @@ public class RyanHandler extends CharacterHandler {
     @Override
     void doSevenChoice(int aiCardIndex) {
         if (game.currentPhase != Game.Phase.PLAYER_SEVEN_CHOICE) return;
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
         Card chosen = oppHand.remove(aiCardIndex);
         game.discardPile.addLast(chosen);
@@ -432,7 +432,7 @@ public class RyanHandler extends CharacterHandler {
         Card[] sec = {second};
         selfHand.remove(second);
         game.discardPile.addLast(second);
-        boolean chooseDamage = game.ai.chooseFiveDamage(self.getCurrentHp(), self.getMaxHp(), opponent.getCurrentHp());
+        boolean chooseDamage = game.getCurrentTurnAI().chooseFiveDamage(self.getCurrentHp(), self.getMaxHp(), opponent.getCurrentHp());
         GameCharacter.AttackResult fiveResult = self.resolveFive(second, chooseDamage);
         Point from = GameAnim.getAIHandCenter(game.ui, game);
         Point to = GameAnim.getRevealPanelCenter(game.ui, game);

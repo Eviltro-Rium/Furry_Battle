@@ -27,6 +27,9 @@ public class CardDeck {
         for (int i = 0; i < 2; i++) {
             cards.add(new Card(-1, Card.CardColor.BLACK, true));
         }
+        for (int i = 0; i < 4; i++) {
+            cards.add(new Card(-1, Card.CardColor.BLACK, false, false, false, false, false, false, true));
+        }
         for (int v = 1; v <= 7; v++) {
             cards.add(new Card(v, Card.CardColor.WHITE));
         }

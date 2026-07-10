@@ -147,11 +147,12 @@ public class ChanHandler extends CharacterHandler {
 
     private void handleAIFourSwap(GameCharacter self, GameCharacter opponent,
                                    List<Card> selfHand, List<Card> oppHand, Runnable onDone) {
-        ChanAI chanAI = (ChanAI) game.ai;
+        AIPlayer aiPlayer = game.getCurrentTurnAI();
         int idx = (int)(Math.random() * oppHand.size());
         Card drawn = oppHand.remove(idx);
 
-        Card swapCard = chanAI.chooseFourSwap(drawn, selfHand);
+        Card swapCard = null;
+        if (aiPlayer instanceof ChanAI) swapCard = ((ChanAI) aiPlayer).chooseFourSwap(drawn, selfHand);
         if (swapCard != null) {
             selfHand.remove(swapCard);
             oppHand.add(swapCard);
@@ -195,7 +196,7 @@ public class ChanHandler extends CharacterHandler {
 
     void doChanFourOpponentSelected(int aiCardIndex) {
         if (!game.chanFourSelectOpponent) return;
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
 
         Card drawn = oppHand.remove(aiCardIndex);
@@ -228,8 +229,9 @@ public class ChanHandler extends CharacterHandler {
         }
 
         if (self != game.playerChar) {
-            ChanAI chanAI = (ChanAI) game.ai;
-            List<Card> reordered = chanAI.reorderFive(topCards);
+            AIPlayer aiPlayer = game.getCurrentTurnAI();
+            List<Card> reordered = null;
+            if (aiPlayer instanceof ChanAI) reordered = ((ChanAI) aiPlayer).reorderFive(topCards);
             for (int i = reordered.size() - 1; i >= 0; i--) {
                 game.deck.putBack(reordered.get(i));
             }
@@ -276,17 +278,18 @@ public class ChanHandler extends CharacterHandler {
 
     private void handleAISevenJudge(GameCharacter self, GameCharacter opponent,
                                      List<Card> oppHand, Runnable onDone) {
-        ChanAI chanAI = (ChanAI) game.ai;
+        AIPlayer aiPlayer = game.getCurrentTurnAI();
         int idx = (int)(Math.random() * oppHand.size());
         Card chosen = oppHand.remove(idx);
 
         game.showAIRevealCard(chosen);
-        boolean keep = chanAI.chooseSevenKeep(chosen);
+        boolean[] keepArr = {false};
+        if (aiPlayer instanceof ChanAI) keepArr[0] = ((ChanAI) aiPlayer).chooseSevenKeep(chosen);
 
         Timer t = new Timer(Game.DELAY_SKIP, e -> {
             ((Timer)e.getSource()).stop();
-            if (keep) {
-                game.ai.getHand().add(chosen);
+            if (keepArr[0]) {
+                game.getAIHand().add(chosen);
                 game.showAttackDesc("7️⃣ AI选择加入手牌: " + chosen);
             } else {
                 game.discardPile.addLast(chosen);
@@ -310,7 +313,7 @@ public class ChanHandler extends CharacterHandler {
     void doChanSevenChoice(int aiCardIndex) {
         if (game.chanSevenKeepMode) return;
         if (!game.chanSevenMode) return;
-        List<Card> oppHand = game.ai.getHand();
+        List<Card> oppHand = game.getAIHand();
         if (aiCardIndex < 0 || aiCardIndex >= oppHand.size()) return;
 
         Card chosen = oppHand.remove(aiCardIndex);
@@ -363,7 +366,7 @@ public class ChanHandler extends CharacterHandler {
         Card swapCard = game.playerHand.remove(playerCardIndex);
         Card drawn = game.chanFourSwapDrawn;
         game.playerHand.add(drawn);
-        game.ai.getHand().add(swapCard);
+        game.getAIHand().add(swapCard);
 
         game.chanFourSwapMode = false;
         game.chanFourSwapDrawn = null;

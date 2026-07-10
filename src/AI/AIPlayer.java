@@ -10,6 +10,13 @@ public class AIPlayer {
     protected int aiDebuffCount;
     protected boolean aiFullHp;
     protected int aiOpponentHandSize;
+    protected int aiGuardStacks;
+    protected int aiOpponentGuardStacks;
+    protected int aiBurnStacks;
+    protected int aiOpponentBurnStacks;
+    protected int aiOpponentBleedStacks;
+    protected int aiHpPercent;
+    protected int aiOpponentHpPercent;
 
     public AIPlayer() {
         hand = new ArrayList<>();
@@ -49,7 +56,7 @@ public class AIPlayer {
         if (card.isBlack()) return 1;
         if (card.isSuperPurify()) return aiHasDebuff ? (aiDebuffCount >= 3 ? 52 : 48) : 2;
         if (card.isPurify()) return aiHasDebuff ? (aiDebuffCount <= 2 ? 51 : 49) : 2;
-        if (card.isPotion()) return 3;
+        if (card.isPotion()) return aiFullHp ? 3 : 60;
         if (card.isSwapHand()) return (hand.size() <= aiOpponentHandSize) ? 6 : 0;
         if (card.isDrawThree()) return 4;
         if (card.isWhite()) return 5;
@@ -126,7 +133,7 @@ public class AIPlayer {
     }
 
     protected boolean isDefendCard(Card card, Card top) {
-        if (card.isBlack()) return hasLowCard() || hand.size() == 1;
+        if (card.isBlack()) return true;
         if (card.isDrawThree()) return true;
         if (card.isPotion()) return true;
         if (card.isSwapHand()) return true;

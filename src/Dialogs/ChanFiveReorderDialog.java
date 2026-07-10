@@ -25,7 +25,7 @@ public class ChanFiveReorderDialog extends JDialog {
         this.slotPanels = new JPanel[cards.size()];
         this.slotLabels = new JLabel[cards.size()];
 
-        setTitle("5️⃣ 排序牌库顶");
+        setTitle("5 排序牌库顶");
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
         ((JPanel)getContentPane()).setOpaque(false);
@@ -34,11 +34,16 @@ public class ChanFiveReorderDialog extends JDialog {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int w = getWidth(), h = getHeight();
+                g2.setColor(new Color(0, 0, 0, 50));
+                g2.fillRoundRect(5, 5, w - 4, h - 4, 24, 24);
                 g2.setColor(new Color(30, 25, 40, 235));
-                g2.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 24, 24);
+                g2.fillRoundRect(0, 0, w - 1, h - 1, 24, 24);
                 g2.setColor(new Color(120, 100, 180, 180));
                 g2.setStroke(new BasicStroke(2f));
-                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 24, 24);
+                g2.drawRoundRect(0, 0, w - 1, h - 1, 24, 24);
+                g2.setColor(new Color(255, 255, 255, 15));
+                g2.fillRoundRect(3, 3, w - 7, h / 4, 22, 22);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -46,7 +51,7 @@ public class ChanFiveReorderDialog extends JDialog {
         bg.setOpaque(false);
         bg.setBorder(BorderFactory.createEmptyBorder(20, 24, 20, 24));
 
-        JLabel titleLabel = new JLabel("5️⃣ 拖动卡牌到空槽，排列牌库顶顺序", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("拖动卡牌到空槽，排列牌库顶顺序", SwingConstants.CENTER);
         titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 16));
         titleLabel.setForeground(new Color(220, 200, 255));
         bg.add(titleLabel, BorderLayout.NORTH);
@@ -69,18 +74,22 @@ public class ChanFiveReorderDialog extends JDialog {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     if (slots[slotIdx] != null) {
                         Color c = GameUI.getSwingColor(slots[slotIdx].getColor());
-                        g2.setColor(c);
-                        g2.fillRoundRect(2, 2, getWidth()-5, getHeight()-5, 12, 12);
+                        g2.setColor(new Color(0, 0, 0, 25));
+                        g2.fillRoundRect(4, 5, getWidth() - 5, getHeight() - 5, 12, 12);
+                        GradientPaint gp = new GradientPaint(0, 0, c.brighter(), 0, getHeight(), c.darker());
+                        g2.setPaint(gp);
+                        g2.fillRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 12, 12);
                         g2.setColor(new Color(255,255,255,60));
                         g2.setStroke(new BasicStroke(1f));
-                        g2.drawRoundRect(2, 2, getWidth()-5, getHeight()-5, 12, 12);
+                        g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 12, 12);
+                        g2.setColor(new Color(255, 255, 255, 30));
+                        g2.fillRoundRect(4, 4, getWidth() - 10, getHeight() / 3, 10, 10);
                     } else {
                         g2.setColor(new Color(60, 50, 80, 180));
-                        g2.fillRoundRect(2, 2, getWidth()-5, getHeight()-5, 12, 12);
+                        g2.fillRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 12, 12);
                         g2.setColor(new Color(120, 100, 180, 120));
-                        g2.setStroke(new BasicStroke(2f));
                         g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{6,4}, 0));
-                        g2.drawRoundRect(2, 2, getWidth()-5, getHeight()-5, 12, 12);
+                        g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 12, 12);
                     }
                     g2.dispose();
                 }
@@ -133,8 +142,13 @@ public class ChanFiveReorderDialog extends JDialog {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
+                int w = getWidth(), h = getHeight();
+                Color bg1 = getBackground();
+                GradientPaint gp = new GradientPaint(0, 0, bg1.brighter(), 0, h, bg1);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.fillRoundRect(2, 2, w - 5, h / 3, 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -164,8 +178,13 @@ public class ChanFiveReorderDialog extends JDialog {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
+                int w = getWidth(), h = getHeight();
+                Color bg1 = getBackground();
+                GradientPaint gp = new GradientPaint(0, 0, bg1.brighter(), 0, h, bg1);
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
+                g2.setColor(new Color(255, 255, 255, 30));
+                g2.fillRoundRect(2, 2, w - 5, h / 3, 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
             }
@@ -232,11 +251,16 @@ public class ChanFiveReorderDialog extends JDialog {
                         Graphics2D g2 = (Graphics2D)g.create();
                         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         Color c = GameUI.getSwingColor(card.getColor());
-                        g2.setColor(c);
-                        g2.fillRoundRect(2, 2, getWidth()-5, getHeight()-5, 10, 10);
+                        g2.setColor(new Color(0, 0, 0, 20));
+                        g2.fillRoundRect(4, 5, getWidth() - 5, getHeight() - 5, 10, 10);
+                        GradientPaint gp = new GradientPaint(0, 0, c.brighter(), 0, getHeight(), c.darker());
+                        g2.setPaint(gp);
+                        g2.fillRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 10, 10);
                         g2.setColor(new Color(255,255,255,60));
                         g2.setStroke(new BasicStroke(1f));
-                        g2.drawRoundRect(2, 2, getWidth()-5, getHeight()-5, 10, 10);
+                        g2.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 10, 10);
+                        g2.setColor(new Color(255, 255, 255, 25));
+                        g2.fillRoundRect(4, 4, getWidth() - 10, getHeight() / 3, 8, 8);
                         g2.dispose();
                     }
                 };

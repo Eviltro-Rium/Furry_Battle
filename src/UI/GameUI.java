@@ -2,14 +2,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.GlyphVector;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 
 public class GameUI {
-    // High-saturation bright theme
     static final Color BG_COLOR = new Color(255, 245, 225);
     static final Color PANEL_BG = new Color(255, 250, 240);
 
-    // Vivid card colors
     static final Color CARD_RED    = new Color(255, 30, 40);
     static final Color CARD_RED_DK    = new Color(220, 20, 30);
     static final Color CARD_YELLOW = new Color(255, 195, 0);
@@ -45,13 +47,15 @@ public class GameUI {
     JButton fiveHealBtn;
     JButton fiveDamageBtn;
     JButton sevenChoiceBtn;
+    JButton targetAI1Btn;
+    JButton targetAI2Btn;
     JButton resetBtn;
     JLabel errorHintLabel;
     HpBar playerHpBar;
     HpBar aiHpBar;
     JLabel playerBurnLabel;
     JLabel aiBurnLabel;
-    private JPanel rootPanel;
+    protected JPanel rootPanel;
 
     void buildUI(Game game) {
         game.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -75,7 +79,7 @@ public class GameUI {
     JPanel getRootPanel() { return rootPanel; }
 
     // ── Top panel: title + deck info ──
-    private JPanel buildTopPanel() {
+    protected JPanel buildTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout(6, 2));
         topPanel.setOpaque(false);
 
@@ -85,13 +89,14 @@ public class GameUI {
                 g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 double pulse = 0.85 + 0.15 * Math.sin(System.currentTimeMillis() / 800.0);
                 int r = (int)(240 * pulse), gr = (int)(80 * pulse), b = (int)(60 * pulse);
-                g2.setColor(new Color(r, gr, b));
-                g2.setFont(getFont());
                 String text = getText();
+                g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(text)) / 2;
                 int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
-                g2.setColor(new Color(255, 200, 150, 60));
+                g2.setColor(new Color(0, 0, 0, 40));
+                g2.drawString(text, x + 2, y + 2);
+                g2.setColor(new Color(255, 200, 150, 80));
                 g2.drawString(text, x + 1, y + 1);
                 g2.setColor(new Color(r, gr, b));
                 g2.drawString(text, x, y);
@@ -117,7 +122,7 @@ public class GameUI {
     }
 
     // ── Center: discard pile + AI area ──
-    private JPanel buildCenterPanel() {
+    protected JPanel buildCenterPanel() {
         JPanel centerPanel = new JPanel(new BorderLayout(14, 8));
         centerPanel.setOpaque(false);
 
@@ -146,7 +151,7 @@ public class GameUI {
         aiHandPanel.setLayout(new WrapLayout(FlowLayout.LEFT, 8, 6));
         aiHandPanel.setBackground(PANEL_BG);
         aiHandPanel.setBorder(makeGlowBorder("AI 手牌", new Color(0, 120, 220)));
-        aiHandPanel.setPreferredSize(new Dimension(0, 130));
+        aiHandPanel.setPreferredSize(new Dimension(0, 110));
 
         aiBurnLabel = new JLabel();
         aiBurnLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
@@ -161,7 +166,7 @@ public class GameUI {
         aiAttackPanel.setLayout(new BorderLayout(4, 2));
         aiAttackPanel.setBackground(new Color(255, 240, 230));
         aiAttackPanel.setBorder(makeGlowBorder("出牌区", new Color(220, 80, 60)));
-        aiAttackPanel.setPreferredSize(new Dimension(0, 180));
+        aiAttackPanel.setPreferredSize(new Dimension(0, 210));
 
         JPanel atkZone = new JPanel(new BorderLayout(2, 2));
         atkZone.setOpaque(false);
@@ -236,7 +241,7 @@ public class GameUI {
     }
 
     // ── Bottom: player hand + controls + status ──
-    private JPanel buildBottomPanel(Game game) {
+    protected JPanel buildBottomPanel(Game game) {
         playerHandPanel = new JPanel();
         playerHandPanel.setLayout(new WrapLayout(FlowLayout.LEFT, 6, 6));
         playerHandPanel.setBackground(new Color(255, 248, 235));
@@ -290,6 +295,8 @@ public class GameUI {
         fiveHealBtn     = makeBtn("恢复", new Color(230, 250, 235), new Color(200, 240, 210), new Color(0, 140, 60));
         fiveDamageBtn   = makeBtn(" 1.5倍",new Color(255, 235, 235), new Color(255, 215, 215), new Color(180, 30, 30));
         sevenChoiceBtn  = makeBtn(" 指定弃牌", new Color(255, 242, 225), new Color(255, 228, 195), new Color(200, 90, 0));
+        targetAI1Btn    = makeBtn(" 目标:AI1", new Color(230, 240, 255), new Color(200, 225, 255), new Color(0, 80, 180));
+        targetAI2Btn    = makeBtn(" 目标:AI2", new Color(240, 220, 255), new Color(225, 200, 255), new Color(120, 0, 180));
 
         playBtn.setIcon(GameIcons.uiBattle());
         enterDiscardBtn.setIcon(GameIcons.uiTrash());
@@ -320,6 +327,9 @@ public class GameUI {
             else if (game.currentPhase == Game.Phase.SAIKI_THREE_CHOICE) game.doChanFourOpponentConfirm();
         });
 
+        targetAI1Btn.addActionListener(e -> { if (game.canClickBtn()) game.onTargetSelected(0); });
+        targetAI2Btn.addActionListener(e -> { if (game.canClickBtn()) game.onTargetSelected(1); });
+
         controlPanel.add(playBtn);
         controlPanel.add(enterDiscardBtn);
         controlPanel.add(confirmDiscardBtn);
@@ -330,6 +340,8 @@ public class GameUI {
         controlPanel.add(fiveHealBtn);
         controlPanel.add(fiveDamageBtn);
         controlPanel.add(sevenChoiceBtn);
+        controlPanel.add(targetAI1Btn);
+        controlPanel.add(targetAI2Btn);
 
         // Status area (right side)
         resetBtn = makeBtn(" 重新开始", new Color(240, 235, 250), new Color(225, 215, 245), new Color(90, 50, 130));
@@ -373,9 +385,10 @@ public class GameUI {
         return bottomPanel;
     }
 
-    // ── Gradient button ──
+    // ── Gradient button with press animation ──
     private JButton makeBtn(String text, Color base, Color hover, Color textColor) {
         JButton btn = new JButton(text) {
+            private boolean pressed = false;
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -385,18 +398,28 @@ public class GameUI {
                 if (!isEnabled()) {
                     useBase = new Color(230, 230, 230);
                     useText = new Color(180, 180, 180);
+                } else if (pressed) {
+                    useBase = darken(hover, 0.88);
                 } else if (getModel().isRollover()) {
                     useBase = hover;
                 }
-                g2.setColor(useBase);
-                g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
                 g2.setColor(new Color(0, 0, 0, 25));
+                g2.fillRoundRect(2, 3, w - 2, h - 2, 10, 10);
+                GradientPaint gp = new GradientPaint(0, 0, useBase, 0, h, darken(useBase, 0.92));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, w - 1, h - 1, 10, 10);
+                g2.setColor(new Color(0, 0, 0, 20));
                 g2.drawRoundRect(0, 0, w - 1, h - 1, 10, 10);
-                g2.setColor(new Color(255, 255, 255, 80));
-                g2.drawRoundRect(1, 1, w - 3, h - 3, 9, 9);
+                g2.setColor(new Color(255, 255, 255, 90));
+                g2.drawRoundRect(1, 1, w - 3, h / 2 - 1, 9, 9);
+                g2.setColor(new Color(255, 255, 255, 40));
+                g2.fillRoundRect(3, 2, w - 7, h / 3, 8, 8);
                 g2.dispose();
                 setForeground(useText);
                 super.paintComponent(g);
+            }
+            private Color darken(Color c, double factor) {
+                return new Color((int)(c.getRed()*factor), (int)(c.getGreen()*factor), (int)(c.getBlue()*factor));
             }
         };
         btn.setFont(new Font("微软雅黑", Font.BOLD, 13));
@@ -407,6 +430,10 @@ public class GameUI {
         btn.setOpaque(false);
         btn.setPreferredSize(new Dimension(115, 38));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e) { btn.repaint(); }
+            @Override public void mouseReleased(MouseEvent e) { btn.repaint(); }
+        });
         return btn;
     }
 
@@ -438,12 +465,16 @@ public class GameUI {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
+                g2.setColor(new Color(0, 0, 0, 30));
+                g2.fillRoundRect(4, 4, w - 3, h - 3, 14, 14);
                 GradientPaint gp = new GradientPaint(0, 0, new Color(70, 130, 240), w, h, new Color(30, 80, 200));
                 g2.setPaint(gp);
                 g2.fillRoundRect(1, 1, w - 3, h - 3, 14, 14);
                 g2.setColor(new Color(255, 255, 255, 120));
                 g2.setStroke(new BasicStroke(1.5f));
                 g2.drawRoundRect(1, 1, w - 3, h - 3, 14, 14);
+                g2.setColor(new Color(255, 255, 255, 50));
+                g2.fillRoundRect(3, 3, w - 7, h / 2, 12, 12);
                 g2.setColor(new Color(255, 255, 255, 100));
                 g2.drawRoundRect(8, 8, w - 18, h - 18, 10, 10);
                 g2.dispose();
@@ -459,117 +490,55 @@ public class GameUI {
 
     // ── Player card view ──
     static JPanel createCardView(Card card, boolean clickable, int handIndex, boolean selected, Game.Phase phase, Game game) {
-        Color top = getSwingColor(card.getColor());
-        Color bot = getDarkColor(card.getColor());
+        int cw = 80, ch = 120;
+        BufferedImage baseImg = GameAnim.renderCardImage(card, cw, ch);
+        boolean hasChosen = card.getChosenColor() != null && (card.isBlack() || card.isWhite());
+        Color chosenColor = hasChosen ? getSwingColor(card.getChosenColor()) : null;
 
-        JPanel cardPanel = new JPanel(new BorderLayout()) {
+        JPanel cardPanel = new JPanel(null) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int w = getWidth(), h = getHeight();
 
                 boolean hover = Boolean.TRUE.equals(getClientProperty("hover"));
-                int offsetY = (hover && clickable && !selected) ? -4 : 0;
+                int offsetY = (hover && clickable && !selected) ? -6 : 0;
 
-                Color useTop = selected ? top.brighter().brighter() : (hover ? top.brighter() : top);
-                Color useBot = selected ? bot.brighter().brighter() : (hover ? bot.brighter() : bot);
-                GradientPaint gp = new GradientPaint(0, offsetY, useTop, w, h + offsetY, useBot);
-                g2.setPaint(gp);
-                g2.fillRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
+                g2.setColor(new Color(0, 0, 0, selected ? 30 : (hover && clickable ? 45 : 25)));
+                g2.fillRoundRect(4, 6 + offsetY, w - 5, h - 5, 16, 16);
+
+                if (baseImg != null) {
+                    g2.drawImage(baseImg, 0, offsetY, w, h, null);
+                }
 
                 if (selected) {
-                    g2.setColor(new Color(255, 220, 60, 200));
+                    g2.setColor(new Color(160, 80, 220, 200));
                     g2.setStroke(new BasicStroke(3f));
                     g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
-                    g2.setColor(new Color(255, 220, 60, 60));
+                    g2.setColor(new Color(160, 80, 220, 60));
                     g2.setStroke(new BasicStroke(8f));
                     g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
-                } else if (card.getChosenColor() != null) {
-                    Color borderC = getSwingColor(card.getChosenColor());
-                    g2.setColor(borderC);
-                    g2.setStroke(new BasicStroke(3f));
+                } else if (hasChosen) {
+                    g2.setColor(new Color(chosenColor.getRed(), chosenColor.getGreen(), chosenColor.getBlue(), 30));
+                    g2.setStroke(new BasicStroke(12f));
                     g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
-                    g2.setColor(new Color(borderC.getRed(), borderC.getGreen(), borderC.getBlue(), 60));
-                    g2.setStroke(new BasicStroke(6f));
-                    g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
-                } else if (hover && clickable) {
-                    g2.setColor(new Color(255, 255, 255, 100));
+                    g2.setColor(new Color(chosenColor.getRed(), chosenColor.getGreen(), chosenColor.getBlue(), 70));
+                    g2.setStroke(new BasicStroke(5f));
+                    g2.drawRoundRect(3, 3 + offsetY, w - 7, h - 7, 15, 15);
+                    g2.setColor(chosenColor);
                     g2.setStroke(new BasicStroke(2f));
-                    g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
+                    g2.drawRoundRect(4, 4 + offsetY, w - 9, h - 9, 14, 14);
+                } else if (hover && clickable) {
                     g2.setColor(new Color(255, 255, 255, 30));
                     g2.setStroke(new BasicStroke(6f));
                     g2.drawRoundRect(2, 2 + offsetY, w - 5, h - 5, 16, 16);
-                } else {
-                    g2.setColor(new Color(255, 255, 255, 40));
-                    g2.setStroke(new BasicStroke(1f));
-                    g2.drawRoundRect(2, 2, w - 5, h - 5, 16, 16);
                 }
-
-                GradientPaint shine = new GradientPaint(0, 0, new Color(255, 255, 255, 70), 0, h / 2, new Color(255, 255, 255, 0));
-                g2.setPaint(shine);
-                g2.fillRoundRect(4, 4 + offsetY, w - 10, h / 2, 14, 14);
 
                 g2.dispose();
             }
         };
-        cardPanel.setPreferredSize(new Dimension(80, 120));
+        cardPanel.setPreferredSize(new Dimension(cw, ch));
         cardPanel.setOpaque(false);
-        cardPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-
-        JLabel numLabel;
-        JLabel cornerLabel;
-        if (card.isBlack()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardBlack());
-            JLabel cornerLbl;
-            if (card.isDrawTwo()) {
-                cornerLbl = new JLabel("+2", SwingConstants.LEFT);
-                cornerLbl.setFont(new Font("Arial", Font.BOLD, 12));
-                cornerLbl.setForeground(new Color(255, 210, 50));
-                cornerLbl.setIcon(GameIcons.cardDrawThreeSmall());
-                cornerLbl.setHorizontalTextPosition(SwingConstants.RIGHT);
-            } else {
-                cornerLbl = GameIcons.makeIconLabel(GameIcons.cardBlackSmall());
-            }
-            cornerLabel = cornerLbl;
-        } else if (card.isSuperPurify()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardSuperPurify());
-            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardSuperPurifySmall());
-        } else if (card.isPurify()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardPurify());
-            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardPurifySmall());
-        } else if (card.isPotion()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardPotion());
-            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardPotionSmall());
-        } else if (card.isDrawThree()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardDrawThree());
-            cornerLabel = new JLabel("+3", SwingConstants.LEFT);
-            cornerLabel.setFont(new Font("Arial", Font.BOLD, 9));
-            cornerLabel.setForeground(new Color(100, 90, 110));
-        } else if (card.isSwapHand()) {
-            numLabel = GameIcons.makeIconLabel(GameIcons.cardSwapHand());
-            cornerLabel = GameIcons.makeIconLabel(GameIcons.cardSwapHandSmall());
-        } else if (card.isWhite()) {
-            numLabel = new JLabel(String.valueOf(card.getValue()), SwingConstants.CENTER);
-            numLabel.setFont(new Font("Arial", Font.BOLD, 30));
-            numLabel.setForeground(new Color(80, 70, 90));
-            cornerLabel = new OutlinedLabel(String.valueOf(card.getValue()), SwingConstants.LEFT, new Color(100, 90, 110), Color.WHITE, 1f);
-            cornerLabel.setFont(new Font("Arial", Font.BOLD, 12));
-            cornerLabel.setForeground(new Color(100, 90, 110));
-        } else {
-            numLabel = new OutlinedLabel(String.valueOf(card.getValue()), SwingConstants.CENTER, Color.WHITE, Color.BLACK, 2f);
-            numLabel.setFont(new Font("Arial", Font.BOLD, 42));
-            numLabel.setForeground(Color.WHITE);
-            cornerLabel = new OutlinedLabel(String.valueOf(card.getValue()), SwingConstants.LEFT, new Color(255, 255, 255, 200), Color.BLACK, 1f);
-            cornerLabel.setFont(new Font("Arial", Font.BOLD, 12));
-            cornerLabel.setForeground(new Color(255, 255, 255, 200));
-        }
-        cardPanel.add(numLabel, BorderLayout.CENTER);
-
-
-        JPanel cornerWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
-        cornerWrap.setOpaque(false);
-        cornerWrap.add(cornerLabel);
-        cardPanel.add(cornerWrap, BorderLayout.NORTH);
 
         if (clickable) {
             cardPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -642,11 +611,44 @@ public class GameUI {
     /** Panel with vertical gradient background + floating particles */
     static class GradientPanel extends JPanel {
         private final Color top, bottom;
-        GradientPanel(Color top, Color bottom) { this.top = top; this.bottom = bottom; }
+        private final java.util.List<int[]> particles = new ArrayList<>();
+        private final Random rng = new Random();
+        private Timer particleTimer;
+
+        GradientPanel(Color top, Color bottom) {
+            this.top = top;
+            this.bottom = bottom;
+            setOpaque(false);
+            for (int i = 0; i < 18; i++) {
+                particles.add(new int[]{
+                    rng.nextInt(1200), rng.nextInt(800),
+                    2 + rng.nextInt(4),
+                    rng.nextInt(360),
+                    1 + rng.nextInt(2)
+                });
+            }
+            particleTimer = new Timer(80, e -> repaint());
+            particleTimer.start();
+        }
+
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
-            g2.setPaint(new GradientPaint(0, 0, top, 0, getHeight(), bottom));
-            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            int w = getWidth(), h = getHeight();
+            GradientPaint gp = new GradientPaint(0, 0, top, 0, h, bottom);
+            g2.setPaint(gp);
+            g2.fillRect(0, 0, w, h);
+
+            long now = System.currentTimeMillis();
+            for (int[] p : particles) {
+                int px = (p[0] + (int)(now / 40.0 * p[4])) % (w + 40) - 20;
+                int py = (p[1] + (int)(Math.sin(now / 2000.0 + p[3]) * 15)) % h;
+                int size = p[2];
+                int alpha = 20 + (int)(15 * Math.sin(now / 1500.0 + p[3]));
+                g2.setColor(new Color(255, 220, 180, alpha));
+                g2.fillOval(px, py, size, size);
+            }
+
             g2.dispose();
         }
     }
@@ -687,7 +689,8 @@ public class GameUI {
         @Override protected void paintThumb(Graphics g, JComponent c, Rectangle r) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(200, 170, 130, 200));
+            GradientPaint gp = new GradientPaint(r.x, r.y, new Color(210, 185, 150), r.x, r.y + r.height, new Color(185, 160, 125));
+            g2.setPaint(gp);
             g2.fillRoundRect(r.x + 2, r.y + 2, r.width - 4, r.height - 4, 6, 6);
             g2.dispose();
         }
@@ -740,20 +743,37 @@ public class GameUI {
         }
     }
 
-    /** Simple HP bar with name and numeric display */
+    /** HP bar with name, numeric display, damage flash, and animated fill */
     static class HpBar extends JPanel {
         private String charName = "";
         private int hp = 100, maxHp = 100;
         private int displayHp = 100;
         private Timer animTimer;
+        private float flashAlpha = 0f;
+        private boolean flashRed = true;
+        private Timer flashTimer;
+
         HpBar() {
-            setPreferredSize(new Dimension(200, 28));
+            setPreferredSize(new Dimension(200, 38));
             setOpaque(false);
         }
+
         void update(String name, int hp, int maxHp) {
             this.charName = name; this.hp = hp; this.maxHp = maxHp;
             if (animTimer != null && animTimer.isRunning()) animTimer.stop();
+
             if (displayHp != hp) {
+                boolean isDamage = hp < displayHp;
+                if (isDamage) {
+                    flashRed = true;
+                    flashAlpha = 0.6f;
+                    startFlashTimer();
+                } else {
+                    flashRed = false;
+                    flashAlpha = 0.4f;
+                    startFlashTimer();
+                }
+
                 int start = displayHp;
                 int diff = hp - start;
                 int steps = Math.max(8, Math.abs(diff));
@@ -761,7 +781,8 @@ public class GameUI {
                 animTimer = new Timer(30, e -> {
                     step[0]++;
                     double t = (double) step[0] / steps;
-                    displayHp = (int)(start + diff * t);
+                    double ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                    displayHp = (int)(start + diff * ease);
                     repaint();
                     if (step[0] >= steps) {
                         displayHp = hp;
@@ -773,23 +794,36 @@ public class GameUI {
             }
             repaint();
         }
+
+        private void startFlashTimer() {
+            if (flashTimer != null && flashTimer.isRunning()) flashTimer.stop();
+            flashTimer = new Timer(40, e -> {
+                flashAlpha -= 0.05f;
+                if (flashAlpha <= 0) {
+                    flashAlpha = 0;
+                    ((Timer)e.getSource()).stop();
+                }
+                repaint();
+            });
+            flashTimer.start();
+        }
+
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             int w = getWidth(), h = getHeight();
-            int barW = Math.max(60, w - 160);
+            int barW = Math.max(60, w - 80);
 
-            g2.setFont(new Font("微软雅黑", Font.BOLD, 14));
+            g2.setFont(new Font("微软雅黑", Font.BOLD, 13));
             g2.setColor(new Color(80, 40, 20));
-            g2.drawString(charName, 4, h - 7);
+            g2.drawString(charName, 4, 13);
 
             String hpText = displayHp + "/" + maxHp;
-            g2.setFont(new Font("Arial", Font.BOLD, 13));
+            g2.setFont(new Font("Arial", Font.BOLD, 12));
             g2.setColor(new Color(60, 30, 10));
-            g2.drawString(hpText, w - 60, h - 7);
+            g2.drawString(hpText, w - g2.getFontMetrics().stringWidth(hpText) - 4, 13);
 
-            int barX = Math.max(60, g2.getFontMetrics().stringWidth(charName) + 12);
-            int barY = 4, barH = h - 10;
+            int barX = 4, barY = 17, barH = h - 20;
 
             g2.setColor(new Color(60, 40, 30, 80));
             g2.fillRoundRect(barX - 1, barY - 1, barW + 2, barH + 2, 8, 8);
@@ -819,10 +853,15 @@ public class GameUI {
                 }
             }
 
+            if (flashAlpha > 0) {
+                Color flashColor = flashRed ? new Color(255, 0, 0, (int)(flashAlpha * 255)) : new Color(0, 255, 0, (int)(flashAlpha * 255));
+                g2.setColor(flashColor);
+                g2.fillRoundRect(barX, barY, barW, barH, 7, 7);
+            }
+
             g2.setColor(new Color(100, 70, 50));
             g2.setStroke(new BasicStroke(1.5f));
             g2.drawRoundRect(barX, barY, barW, barH, 7, 7);
-
 
             g2.dispose();
         }

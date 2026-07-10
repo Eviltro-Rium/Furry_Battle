@@ -40,8 +40,9 @@ public class SerenityCharacter extends GameCharacter {
 
         switch (v) {
             case 1:
-                r.selfHeal = 3;
-                r.desc = "1 恢复3点命";
+                r.damage = 3;
+                if (bt) r.skipDefense = true;
+                r.desc = bt ? "1 3点伤(嗜血跳防)" : "1 3点伤";
                 break;
             case 2:
                 r.damage = bt ? 5 : 3;
@@ -78,6 +79,7 @@ public class SerenityCharacter extends GameCharacter {
                 break;
             case 0:
                 r.addFollowUp(FollowUp.SERENITY_ZERO_DISCARD);
+                r.skipDefense = true;
                 r.desc = "0 弃手牌恢复+重抽4";
                 break;
             default:
@@ -125,8 +127,10 @@ public class SerenityCharacter extends GameCharacter {
                 r.desc = bt ? "3 格挡半+2(嗜血)" : "3 格挡半";
                 break;
             case 0:
+                r.immuneAll = true;
+                r.immuneDebuff = true;
                 r.addFollowUp(FollowUp.SERENITY_DEFEND_ZERO_REVEAL);
-                r.desc = "0 翻牌判定";
+                r.desc = "0 翻牌判定(免疫)";
                 break;
             default:
                 r.desc = "";

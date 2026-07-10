@@ -25,8 +25,10 @@ public class SerenityHandler extends CharacterHandler {
 
         if (isYellowGreen) {
             self.heal(4);
-            game.showAttackDesc("5 判定" + revealed + " → " + who + "恢复4点命");
-            GameAnim.playFloatingText(game, "+4", new Color(60, 220, 60),
+            game.pendingAttack = new GameCharacter.AttackResult();
+            game.pendingAttack.skipDefense = true;
+            game.showAttackDesc("5 判定" + revealed + " → " + who + "恢复4点命（跳过防御）");
+            GameAnim.playFloatingText(game, "+4[生命]", new Color(60, 220, 60),
                 self == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 30)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
@@ -34,7 +36,7 @@ public class SerenityHandler extends CharacterHandler {
             int dmg = 5;
             opponent.takeDamage(dmg);
             game.showAttackDesc("5 判定" + revealed + " → " + who + "对对手造成5点伤");
-            GameAnim.playFloatingText(game, "-" + dmg, new Color(255, 60, 60),
+            GameAnim.playFloatingText(game, "-" + dmg + "[伤害]", new Color(255, 60, 60),
                 opponent == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3));
@@ -64,7 +66,7 @@ public class SerenityHandler extends CharacterHandler {
         self.heal(totalHeal);
         String who = self == game.playerChar ? "你" : "AI";
         game.showAttackDesc("0 " + who + "弃" + discardCount + "张 → 恢复" + totalHeal + "点命");
-        GameAnim.playFloatingText(game, "+" + totalHeal, new Color(60, 220, 60),
+        GameAnim.playFloatingText(game, "+" + totalHeal + "[生命]", new Color(60, 220, 60),
             self == game.playerChar
                 ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 30)
                 : new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
@@ -104,11 +106,11 @@ public class SerenityHandler extends CharacterHandler {
             self.heal(actualDrain);
             String who = self == game.playerChar ? "你" : "AI";
             game.showDefendDesc("2 " + who + "吸血" + actualDrain + "点(血" + bleedStacks + "层)");
-            GameAnim.playFloatingText(game, "-" + actualDrain, new Color(255, 60, 60),
+            GameAnim.playFloatingText(game, "-" + actualDrain + "[伤害]", new Color(255, 60, 60),
                 opponent == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3));
-            GameAnim.playFloatingText(game, "+" + actualDrain, new Color(60, 220, 60),
+            GameAnim.playFloatingText(game, "+" + actualDrain + "[生命]", new Color(60, 220, 60),
                 self == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4 - 30)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3 - 30));
@@ -141,13 +143,12 @@ public class SerenityHandler extends CharacterHandler {
             int reduction = opponent.getCurrentHp() - halvedHp;
             opponent.takeDamage(reduction);
             game.showDefendDesc("0 判定" + revealed + " → 黄牌! 对手命量减半");
-            GameAnim.playFloatingText(game, "-" + reduction, new Color(255, 60, 60),
+            GameAnim.playFloatingText(game, "-" + reduction + "[伤害]", new Color(255, 60, 60),
                 opponent == game.playerChar
                     ? new Point(game.getWidth() / 2, game.getHeight() * 3 / 4)
                     : new Point(game.getWidth() / 2, game.getHeight() / 3));
         } else {
-            game.pendingDefendResult.immuneAll = true;
-            game.pendingDefendResult.immuneDebuff = true;
+
             game.showDefendDesc("0 判定" + revealed + " → 非黄牌! 免疫所有伤害和debuff");
         }
 
