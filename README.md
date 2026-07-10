@@ -1,32 +1,50 @@
-# Furry Battle v1.4
+# Furry Battle v2.0
 
 一款基于 Java Swing 的回合制卡牌对战游戏。选择你的角色，与 AI 展开策略博弈！
 
-## v1.4 更新内容
+## v2.0 更新内容
 
-- **新角色 🐶 Serenity**：80血，免疫❄️冷冻，低血嗜血态，正常态恢复+1❤️
-  - 进攻5️⃣翻牌判定(🟡🟢恢复4❤️/其他5点🗡️) · 7️⃣嗜血无自伤 · 0️⃣弃手牌恢复+重抽4🃏+嗜血对手弃牌
-  - 防御2️⃣吸血(🩸层数×2❤️) · 0️⃣翻牌判定(🟡对手❤️减半/免疫所有伤害和debuff)
-- **🐶 Blaze技能重做**：85血，2️⃣不可防御 · 5️⃣自身+1🔥→2×🔥层数🗡️(含被动) · 6️⃣1.5×🔥恢复❤️+清🔥+跳防 · 7️⃣双方+2🔥→1.5×场上🔥🗡️(含被动)
-- **防御1️⃣**：恢复2+🔥层数❤️+双方各+1🔥 · 防御2️⃣道具牌额外+1🔥
-- **PNG图标系统**：卡牌/buff/UI按钮全部替换为PNG图标，嗜血态图标
-- **游戏内弹窗**：黑牌选色、净化选择改为深色游戏内弹窗，替换JOptionPane
-- **Windows兼容**：Java代码中文字替换emoji，Card.toString()用中文标识道具牌
-- **飘字顺序化**：伤害/恢复/buff飘字按时间先后顺序出现
-- **防御搭桥修复**：🔄交换牌/✨净化牌可在防御搭桥中使用，canDefend检查移至搭桥牌之后
-- **弃牌库洗入保留顶牌**：牌库空时弃牌库洗回，保留顶上一张
-- **🩸流血上限改为2层**（原3层）
-- **🐺 Saiki**：防御1️⃣改为至多3点 · 7️⃣实现2+2×🩸🗡️+恢复等量❤️ · AI无🩸不出7️⃣
-- **AI优化**：Blaze 5️⃣不再跳过 · 防御只剩⚫牌时也会打出 · 🔄防御可用
-
+- **1v2 双雄模式**：玩家同时对抗两个 AI，8张手牌
+  - 回合顺序：玩家 → AI1 → AI2 循环
+  - 进攻/交换需选择目标（游戏内按钮选择，非弹窗）
+  - 玩家回合结束只给AI补牌，AI回合全部结束才给玩家补牌
+  - 一位AI出局后另一AI自动升级（手牌上限8张）
+- **新角色 � Moze**：100血，守护型坦克
+  - 🛡️【守护】buff：受伤害时弹窗选择消耗守护减免（1层减1🗡️），上限5层，不可减免🩸流血伤害
+  - 进攻1️⃣3�️ / 2️⃣2🗡️+1🛡️(🟢额外+1) / 3️⃣1🗡️+1❤️+1🛡️ / 4️⃣出数字牌获对应🛡️弃掉该牌(跳防) / 5️⃣抽对手1牌判定(🟢/⚪/⚫→4🗡️;其他→2❤️+1🛡️跳防) / 6️⃣2+🛡️层数🗡️(无�️不可防御) / 7️⃣3🗡️+清debuff每层+1�️ / 0️⃣3🛡️+5🗡️+抽1🃏
+  - 防御1️⃣防½+1�️ / 2️⃣反击1+½�️层数🗡️ / 3️⃣1�️+恢复½×🛡️层数❤️ / 0️⃣防½+2�️+反击2×�️层数🗡️
+- **Leon 0️⃣重做**：AOE效果——对所有对手+1🔥+弃对手合计2牌+7�️(不可防御)+每有1个对手存活自伤2点
+- **Serenity 5️⃣修改**：恢复分支（🟡🟢判定）跳过防御
+- **Saiki 0️⃣修改**：恢复量改为场上所有🩸层数之和（1v2含AI2）
+- **架构重构**：GameMode 策略模式，添加新模式只需实现接口
+  - `Participant` 统一玩家/AI抽象
+  - `TurnManager` 回合轮转管理
+  - `AttackEngine` / `DefenseEngine` / `TurnEngine` 职责拆分
+- **AI出牌优化**：角色专属AI策略，感知守护/灼烧/流血/血量百分比等上下文
+- **灼伤结算修正**：有灼伤标记的一方在进攻回合结束后结算（玩家回合结束→玩家结算，AI回合结束→AI结算）
+- **✨✨超级净化**：清除所有buff，包括正面buff（🛡️守护）
+- **洗入牌库黑牌**：4张新黑牌，打出后指定颜色+弃牌库洗入牌库+搭桥
+- **角色选择重做**：角色只罗列一遍，Player/Bot模式按钮切换，支持同一角色被双方选择
+- **白/黑牌指定颜色渲染**：对角线渐变（左上原色→右下指定颜色），三层发光边框
+- **Buff图标优化**：图标放大，单图标+数字叠加替代多图标堆叠
+- **卡牌渲染统一**：手牌/出牌区/飞入动画都基于 `renderCardImage()`
+- **数字卡牌勾线**：偏移±1半透明黑描边
+- **技能描述系统**：中括号颜色标签（`[生命]`绿 `[伤害]`红 `[灼烧]`橙 等）
+- **卡牌选中弹窗**：半透明深色弹窗，显示卡牌名+技能描述，持续到取消选中
+- **飘字颜色标签**：分段着色渲染（`+5[生命]`、`-3[伤害]`等）
+- **选中高亮紫色**：`new Color(160, 80, 220)`
+- **防御搭桥修复**：AI黑牌始终可作为搭桥牌使用
+- **弃牌跳回出牌修复**：确认弃牌后正确切换phase，防止跳回出牌
+- **AI回合补牌修复**：补牌动画完成后才切换到玩家回合，防止手牌未补上
 
 ## 特色
 
-- **六角色系统**：🐼 Ryan（回复型）、🐻‍❄️ Leon（灼烧型）、🐼 Chan（冷冻型）、🐺 Saiki（流血型）、🐶 Blaze（灼烧狂战）、🐶 Serenity（嗜血型），技能风格迥异
-- **搭桥机制**：⚫ / 🧪 / +3🃏 / ✨ / ✨✨ / 🔄 可连续搭桥，策略深度拉满
+- **七角色系统**：🐼 Ryan（回复型）、🐻‍❄️ Leon（灼烧型）、� Chan（冷冻型）、🐺 Saiki（流血型）、🐶 Blaze（灼烧狂战）、🐶 Serenity（嗜血型）、🐼 Moze（守护型）
+- **双模式**：1v1经典对战 / 1v2双雄模式
+- **搭桥机制**：⚫ / 🧪 / +3🃏 / ✨ / ✨✨ / 🔄 / 洗入 可连续搭桥
 - **攻防分区**：出牌区左攻右防，防御结束后统一清理
 - **AI 对手**：角色专属 AI 策略，会根据局势搭桥、跳防、优先出牌
-- **动画效果**：卡牌飞入、HP 平滑过渡、飘字伤害/恢复、🔥/❄️/🩸/嗜血标记
+- **动画效果**：卡牌飞入、HP 平滑过渡、飘字伤害/恢复、🔥/❄️/🩸/🛡️/嗜血标记
 
 ## 角色一览
 
@@ -36,7 +54,7 @@
 |---|---|
 | **70** | 回合开始恢复1❤️ |
 
-**进攻**：1️⃣恢复3❤️ · 2️⃣3🗡️+恢复1❤️ · 3️⃣2🗡️+恢复2❤️ · 4️⃣判定(🟢/⚪/⚫→恢复1❤️+4🗡️) · 5️⃣再打1牌(恢复或1.5倍🗡️) · 6️⃣4🗡️+清debuff+抽1🃏 · 7️⃣手牌数字之和½🗡️ · 0️⃣4❤️+清debuff+抽2公示牌🗡️
+**进攻**：1️⃣恢复3❤️ · 2️⃣3🗡️+恢复1❤️ · 3️⃣恢复1❤️+抽1🃏(可弃1牌跳防) · 4️⃣判定(🟢/⚪/⚫→恢复1❤️+4🗡️;其他→加入手牌) · 5️⃣再打1牌(恢复或1.5倍🗡️) · 6️⃣4🗡️+清debuff+抽1🃏 · 7️⃣手牌数字之和½🗡️ · 0️⃣4❤️+清debuff+抽2公示牌🗡️
 
 **防御**：1️⃣格挡½ · 2️⃣反击2🗡️+恢复2❤️ · 3️⃣🔴免疫/其他恢复3❤️ · 0️⃣清debuff+免疫+恢复3❤️
 
@@ -46,11 +64,11 @@
 |---|---|
 | **100** | 免疫🔥灼烧伤害（正常挂标记） |
 
-**进攻**：1️⃣2层🔥(跳防) · 2️⃣4🗡️ · 3️⃣3🗡️+1🔥 · 4️⃣5🗡️(有🔥跳防) · 5️⃣4🗡️(有🔥+2) · 6️⃣判定(数字→对应🗡️;0/⚪/⚫→2🔥跳防) · 7️⃣弃对手1牌+6🗡️+2🔥 · 0️⃣敌方弃2+1🔥+7🗡️(跳防)+自伤2
+**进攻**：1️⃣2层🔥(跳防) · 2️⃣4🗡️ · 3️⃣3🗡️+1🔥 · 4️⃣5🗡️(对手有🔥跳防) · 5️⃣4🗡️(对手有🔥+2) · 6️⃣判定(数字→对应🗡️;0/⚪/⚫→2🔥跳防) · 7️⃣弃对手1牌+6🗡️+2🔥 · 0️⃣对所有对手+1🔥+弃对手合计2牌+7🗡️(不可防御)+每有1个对手存活自伤2点
 
 **防御**：1️⃣1🔥+恢复2❤️ · 2️⃣反击½+抽1🃏 · 3️⃣格挡½+抽1🃏 · 0️⃣攻击方弃所有牌+双方各受等量🗡️
 
-### 🐼 Chan — 冷冻型操控者
+### � Chan — 冷冻型操控者
 
 | 血量 | 被动 |
 |---|---|
@@ -66,7 +84,7 @@
 |---|---|
 | **80** | ⚔️阶段打出🟡牌，对对手施加1层🩸 |
 
-**进攻**：1️⃣4🗡️ · 2️⃣3🗡️+恢复1❤️ · 3️⃣2🗡️+抽对手1牌(可弃掉) · 4️⃣5🗡️(对手有🩸不可防御) · 5️⃣HP分段(≤20恢复4❤️/20<HP≤50 4🗡️跳防/>50 4🗡️+抽对手1牌) · 6️⃣判定数字牌×1.5🗡️(🟡牌+🩸) · 7️⃣2+2×🩸层数🗡️+恢复等量❤️ · 0️⃣1层🩸+3×🩸层数+1🗡️+恢复双方🩸之和❤️
+**进攻**：1️⃣4🗡️ · 2️⃣3🗡️+恢复1❤️ · 3️⃣2🗡️+抽对手1牌(可弃掉) · 4️⃣5🗡️(对手有🩸不可防御) · 5️⃣HP分段(≤20恢复4❤️/20<HP≤50 4🗡️跳防/>50 4🗡️+抽对手1牌) · 6️⃣判定数字牌×1.5🗡️(🟡牌+🩸) · 7️⃣2+2×🩸层数🗡️+恢复等量❤️ · 0️⃣1层🩸+3×对手🩸层数+1🗡️+恢复场上所有🩸层数之和❤️
 
 **防御**：1️⃣防御至多3点🗡️ · 2️⃣反击3🗡️+1层🩸 · 3️⃣翻牌判定(🟡/⚫/⚪→防御所有🗡️不免疫debuff/否则加入手牌) · 0️⃣防御所有🗡️+免疫debuff+双方均摊½🗡️+debuff反弹
 
@@ -86,9 +104,31 @@
 |---|---|
 | **80** | 免疫❄️冷冻；❤️<30时嗜血态(不可净化)；正常态恢复+1❤️ |
 
-**进攻**：1️⃣恢复3❤️ · 2️⃣3🗡️(嗜血5🗡️) · 3️⃣2🗡️+恢复2❤️ · 4️⃣5🗡️(嗜血先+1🩸) · 5️⃣翻牌判定(🟡🟢→恢复4❤️/其他→5🗡️) · 6️⃣6🗡️(嗜血不可防御) · 7️⃣自伤2🗡️+5🗡️不可防御(嗜血无自伤) · 0️⃣1❤️+弃全部手牌每张+3❤️(上限9)+重抽4🃏继续⚔️(嗜血对手也弃牌重抽)
+**进攻**：1️⃣3🗡️(嗜血跳防) · 2️⃣3🗡️(嗜血5🗡️) · 3️⃣2🗡️+恢复2❤️ · 4️⃣5🗡️(嗜血先+1🩸) · 5️⃣翻牌判定(🟡🟢→恢复4❤️跳防/其他→5🗡️) · 6️⃣6🗡️(嗜血不可防御) · 7️⃣自伤2🗡️+5🗡️不可防御(嗜血无自伤) · 0️⃣弃全部手牌每张+3❤️(上限9)+重抽4🃏继续⚔️(嗜血跳防)
 
 **防御**：1️⃣防御3🗡️(嗜血恢复防御点数❤️) · 2️⃣1层🩸+吸血(🩸层数×2❤️) · 3️⃣格挡½🗡️(嗜血+2) · 0️⃣翻牌判定(🟡→对手⚔️后❤️减半/其他→免疫所有🗡️和debuff)
+
+### 🐼 Moze — 守护型坦克
+
+| 血量 | 被动 |
+|---|---|
+| **100** | 受伤害时弹窗选择消耗【守护】减免（1层减1🗡️，上限5层，不可减免🩸流血伤害） |
+
+**进攻**：1️⃣3🗡️ · 2️⃣2🗡️+1🛡️(🟢额外+1) · 3️⃣1🗡️+1❤️+1🛡️ · 4️⃣打出1张数字牌获对应层数🛡️弃掉该牌(跳防) · 5️⃣选对手1牌判定(🟢/⚪/⚫→4🗡️/其他→2❤️+1🛡️跳防)该牌加入手牌 · 6️⃣2+🛡️层数🗡️(无🛡️不可防御) · 7️⃣3🗡️+清debuff每层+1🗡️ · 0️⃣3🛡️+5🗡️+抽1🃏
+
+**防御**：1️⃣防½+1🛡️ · 2️⃣反击1+½🛡️层数🗡️ · 3️⃣1🛡️+恢复½×🛡️层数❤️ · 0️⃣防½+2🛡️+反击2×🛡️层数🗡️
+
+## 1v2 双雄模式
+
+| 规则 | 说明 |
+|---|---|
+| 玩家血量 | 原角色血量（不翻倍） |
+| 手牌上限 | 玩家8张，AI各5张 |
+| 回合顺序 | 玩家 → AI1 → AI2 循环 |
+| 目标选择 | 进攻/交换时选择攻击AI1或AI2 |
+| 补牌时机 | 玩家回合结束→AI补牌；AI回合全部结束→玩家补牌 |
+| AI互攻 | AI只攻击玩家，不攻击另一个AI |
+| 出局处理 | 一位AI出局后，剩余AI立刻补齐8张手牌继续战斗 |
 
 ## 卡牌系统
 
@@ -99,24 +139,26 @@
 | 🔴🟡🔵🟢 7, 0 | 各1张 | 四色数字牌 |
 | ⚫ 黑牌 | 2张 | 指定颜色，搭桥 |
 | ⚫ 黑+2 | 2张 | 指定颜色，抽2，搭桥 |
+| ⚫ 洗入 | 4张 | 指定颜色+弃牌库洗入牌库+搭桥 |
 | ⚪ 白1~白7 | 各1张 | 匹配任意颜色 |
 | ⚪ 🧪 | 4张 | 恢复5❤️，搭桥 |
 | ⚪ +3🃏 | 2张 | 抽3张，搭桥 |
 | ⚪ ✨ | 6张 | 净化1层debuff，搭桥 |
-| ⚪ ✨✨ | 2张 | 清除所有debuff，搭桥 |
+| ⚪ ✨✨ | 2张 | 清除所有buff(含🛡️)，搭桥 |
 | ⚪ 🔄 | 2张 | 交换双方所有手牌，搭桥 |
 
-**总计 91 张**
+**总计 95 张**
 
 ### 核心规则
 
 - **出牌**：匹配弃牌库顶的颜色或数字
-- **搭桥**：⚫ / 🧪 / +3🃏 / ✨ / ✨✨ / 🔄 打出后不结束回合，可连续搭桥
+- **搭桥**：⚫ / 🧪 / +3🃏 / ✨ / ✨✨ / 🔄 / 洗入 打出后不结束回合，可连续搭桥
 - **防御**：出数字≤3且颜色匹配的牌防御；也可用搭桥牌过渡
-- **🔥灼烧**：回合结束按层数受伤并减1层，最多4层（🐻‍❄️ Leon免疫伤害但正常挂标记）
+- **🔥灼烧**：有灼伤标记的一方在进攻回合结束后按层数受伤并减1层，最多4层（🐻‍❄️ Leon免疫伤害但正常挂标记）
 - **❄️冷冻**：被冷冻时无法防御🔵蓝色攻击（包括被指定为蓝色的⚪白牌）
 - **🩸流血**：防御时每层流血造成1点独立伤害（最多2层），可净化
-- **净化**：✨移除1层debuff（🔥/❄️/🩸），✨✨移除所有debuff
+- **🛡️守护**：受伤害时弹窗选择消耗守护减免（1层减1🗡️），上限5层，不可减免🩸流血伤害
+- **净化**：✨移除1层debuff（🔥/❄️/🩸），✨✨移除所有buff（含🛡️守护）
 - **手牌上限**：回合结束时手牌超过上限需弃牌
 
 ## 运行方式
@@ -143,79 +185,78 @@ start.bat
 ### 手动编译运行
 
 ```bash
-javac -sourcepath src -d out src/Card.java src/CardDeck.java src/GameCharacter.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/Characters/BlazeCharacter.java src/Characters/SerenityCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/AI/BlazeAI.java src/AI/SerenityAI.java src/GameIcons.java src/GameUI.java src/GameAnim.java src/EffectEngine.java src/CharacterSelectPanel.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Dialogs/ColorChooserDialog.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java src/Handlers/SerenityHandler.java
+javac -sourcepath src -d out src/Core/Card.java src/Core/CardDeck.java src/Core/GameCharacter.java src/Core/Participant.java src/Characters/RyanCharacter.java src/Characters/LeonCharacter.java src/Characters/ChanCharacter.java src/Characters/SaikiCharacter.java src/Characters/BlazeCharacter.java src/Characters/SerenityCharacter.java src/Characters/MozeCharacter.java src/AI/AIPlayer.java src/AI/RyanAI.java src/AI/LeonAI.java src/AI/ChanAI.java src/AI/SaikiAI.java src/AI/BlazeAI.java src/AI/SerenityAI.java src/AI/MozeAI.java src/UI/GameIcons.java src/UI/GameUI.java src/UI/GameUI1v2.java src/UI/GameAnim.java src/UI/EffectEngine.java src/UI/CharacterSelectPanel.java src/UI/ModeSelectPanel.java src/UI/SkillDesc.java src/Mode/GameMode.java src/Mode/Mode1v1.java src/Mode/Mode1v2.java src/Mode/TurnManager.java src/Engine/AttackEngine.java src/Engine/DefenseEngine.java src/Engine/TurnEngine.java src/Game.java src/Handlers/CharacterHandler.java src/Handlers/RyanHandler.java src/Handlers/LeonHandler.java src/Handlers/ChanHandler.java src/Handlers/SaikiHandler.java src/Handlers/BlazeHandler.java src/Handlers/SerenityHandler.java src/Handlers/MozeHandler.java src/Dialogs/ChanFiveReorderDialog.java src/Dialogs/PurifyDialog.java src/Dialogs/ColorChooserDialog.java src/Dialogs/CardTooltipDialog.java src/Dialogs/GuardChooserDialog.java
 java -cp out Game
 ```
-
-## 打包发布
-
-### macOS / Linux
-
-```bash
-chmod +x build.sh
-./build.sh
-```
-
-### Windows
-
-双击 `build.bat`，生成 `FurryBattle.zip` 发布包。
-
-### Windows EXE
-
-双击 `build_exe.bat`（需在 Windows 上运行，JDK 17+），生成自带 JRE 的独立 EXE。
 
 ## 项目结构
 
 ```
 src/
-├── Card.java                 # 卡牌类
-├── CardDeck.java             # 牌堆（91张）
-├── GameCharacter.java        # 角色基类
-├── GameIcons.java            # 图标加载工具类
+├── Game.java                  # 游戏主逻辑（协调器）
+├── Core/
+│   ├── Card.java              # 卡牌类
+│   ├── CardDeck.java          # 牌堆（95张）
+│   ├── GameCharacter.java     # 角色基类
+│   └── Participant.java       # 参与者抽象（玩家/AI统一）
+├── Mode/
+│   ├── GameMode.java          # 模式策略接口
+│   ├── Mode1v1.java           # 1v1模式
+│   ├── Mode1v2.java           # 1v2双雄模式
+│   └── TurnManager.java       # 回合轮转管理
+├── Engine/
+│   ├── AttackEngine.java      # 攻击结算+效果处理
+│   ├── DefenseEngine.java     # 防御流程+搭桥
+│   └── TurnEngine.java        # 回合管理+AI执行
+├── UI/
+│   ├── GameUI.java            # 1v1 Swing界面
+│   ├── GameUI1v2.java         # 1v2 Swing界面
+│   ├── GameAnim.java          # 动画系统
+│   ├── EffectEngine.java      # 效果引擎
+│   ├── GameIcons.java         # 图标加载
+│   ├── CharacterSelectPanel.java # 角色选择
+│   ├── ModeSelectPanel.java   # 模式选择
+│   └── SkillDesc.java         # 技能描述
 ├── Characters/
-│   ├── RyanCharacter.java    # 🐼 Ryan 角色逻辑
-│   ├── LeonCharacter.java    # 🐻‍❄️ Leon 角色逻辑
-│   ├── ChanCharacter.java    # 🐼 Chan 角色逻辑
-│   ├── SaikiCharacter.java   # 🐺 Saiki 角色逻辑
-│   ├── BlazeCharacter.java   # 🐶 Blaze 角色逻辑
-│   └── SerenityCharacter.java # 🐶 Serenity 角色逻辑
+│   ├── RyanCharacter.java     # 🐼 Ryan
+│   ├── LeonCharacter.java     # 🐻‍❄️ Leon
+│   ├── ChanCharacter.java     # � Chan
+│   ├── SaikiCharacter.java    # 🐺 Saiki
+│   ├── BlazeCharacter.java    # 🐶 Blaze
+│   ├── SerenityCharacter.java # 🐶 Serenity
+│   └── MozeCharacter.java     # 🐼 Moze
 ├── AI/
-│   ├── AIPlayer.java         # AI 基类（优先级系统）
-│   ├── RyanAI.java           # 🐼 Ryan AI
-│   ├── LeonAI.java           # 🐻‍❄️ Leon AI
-│   ├── ChanAI.java           # 🐼 Chan AI
-│   ├── SaikiAI.java          # 🐺 Saiki AI
-│   ├── BlazeAI.java          # 🐶 Blaze AI
-│   └── SerenityAI.java       # 🐶 Serenity AI
+│   ├── AIPlayer.java          # AI基类（优先级系统）
+│   ├── RyanAI.java ~ MozeAI.java
 ├── Handlers/
-│   ├── CharacterHandler.java # Handler 基类
-│   ├── RyanHandler.java      # 🐼 Ryan 特殊交互
-│   ├── LeonHandler.java      # 🐻‍❄️ Leon 判定交互
-│   ├── ChanHandler.java      # 🐼 Chan 交互逻辑
-│   ├── SaikiHandler.java     # 🐺 Saiki 交互逻辑
-│   ├── BlazeHandler.java     # 🐶 Blaze 交互逻辑
-│   └── SerenityHandler.java  # 🐶 Serenity 交互逻辑
+│   ├── CharacterHandler.java  # Handler基类
+│   ├── RyanHandler.java ~ MozeHandler.java
 ├── Dialogs/
-│   ├── ChanFiveReorderDialog.java # 5️⃣排序弹窗
-│   ├── PurifyDialog.java          # ✨净化选择弹窗
-│   └── ColorChooserDialog.java    # ⚫黑牌选色弹窗
-├── EffectEngine.java         # 效果引擎
-├── GameUI.java               # Swing 界面
-├── GameAnim.java             # 动画系统
-├── CharacterSelectPanel.java # 角色选择
-├── Game.java                 # 游戏主逻辑
+│   ├── ChanFiveReorderDialog.java
+│   ├── PurifyDialog.java
+│   ├── ColorChooserDialog.java
+│   ├── CardTooltipDialog.java
+│   └── GuardChooserDialog.java
 └── icons/
-    ├── card_icons/           # 卡牌图标PNG
-    ├── buff_icons/           # buff标记PNG
-    └── ui_icons/             # UI按钮图标PNG
+    ├── card_icons/            # 卡牌图标PNG
+    ├── buff_icons/            # buff标记PNG（🔥❄️🩸🛡️）
+    └── ui_icons/              # UI按钮图标PNG
 ```
+
+## 扩展新模式
+
+1. 实现 `GameMode` 接口（手牌上限、AI数量、创建参与者、目标选择、胜负判定、UI创建）
+2. 实现 `GameUI` 子类（如需要新布局）
+3. 在 `ModeSelectPanel` 中添加入口
+
+Game.java 核心逻辑零改动。
 
 ## 扩展角色
 
 1. 创建 `Characters/XCharacter.java` 继承 `GameCharacter`
 2. 创建 `AI/XAI.java` 继承 `AIPlayer`
 3. 创建 `Handlers/XHandler.java` 继承 `CharacterHandler`
-4. 在 `Game.onCharacterSelected()` 中注册新角色
+4. 在 `Game.createCharacter()` / `Game.createAI()` 中注册
 
 ## 致谢
 
